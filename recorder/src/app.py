@@ -16,6 +16,9 @@ dataProcessor = Processor.DataProcessor()
 ar = AsyncReader.StdinReader(0, "reader", process_input)
 ar.start()
 
+
+dataProcessor.get_flat_buffer()
+
 # show UI
 top = Tkinter.Tk()
 startButton = Tkinter.Button(top, text="GO!", command=start_recording)
