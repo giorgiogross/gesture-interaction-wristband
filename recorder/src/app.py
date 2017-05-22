@@ -11,10 +11,12 @@ def start_recording():
     dataProcessor.record(int(gestureIdEntry.get()))
 
 
+# handle data input of the sensor
 dataProcessor = Processor.DataProcessor()
 ar = AsyncReader.StdinReader(0, "reader", process_input)
 ar.start()
 
+# show UI
 top = Tkinter.Tk()
 startButton = Tkinter.Button(top, text="GO!", command=start_recording)
 startButton.pack(side=Tkinter.LEFT)
