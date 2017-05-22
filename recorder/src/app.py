@@ -1,9 +1,11 @@
 from reader import AsyncReader
+from processor import Processor
 
 
 def rec(input):
-    print "Received new input: " + input
+    dp.put_raw(input)
+
+dp = Processor.DataProcessor()
 
 ar = AsyncReader.StdinReader(0, "reader", rec)
 ar.start()
-ar.end_reading()
