@@ -17,7 +17,7 @@ class StdinReader(threading.Thread):
 
     def run(self):
         while self.keepReading:
-            self.callback(raw_input())
+            self.callback(sys.stdin.readline())
         sys.exit(0)
 
     def end_reading(self):
