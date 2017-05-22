@@ -17,6 +17,9 @@ class DataProcessor:
 
     # insert raw data string into the buffer. Data will be parsed based on x,y,z,alpha,beta,gamma as float values
     def put_raw(self, raw_data):
+        if len(raw_data) != 7:
+            return
+
         self.buffer[self.arrayPointer] = re.findall(r'[-+]?\d*\.\d+|\d+', raw_data)
 
         if self.recState.is_prepared() and not self.recState.is_recording and \
@@ -33,6 +36,7 @@ class DataProcessor:
 
     def write_buffer_to_csv(self):
         data = self.get_flat_buffer()
+        # add the gesture id as an additional last row
         data = np.append(data, [self.recState.gesture_id])
         with open(r'raw/sensor_data.csv', 'a') as f:
             writer = csv.writer(f)
@@ -46,6 +50,7 @@ class DataProcessor:
     def prepare_recording(self, gid):
         self.recState.prepare_recording(gid)
 
+    # create a 1D array from the 2D buffer and shift all values right so that the latest value is at the buffer end
     def get_flat_buffer(self):
         out_array = np.array([])
         out_array = np.append(out_array, np.roll(self.buffer.flatten(), self.n * self.m - self.arrayPointer))

@@ -8,7 +8,16 @@ def process_input(in_stream):
 
 
 def start_recording():
-    dataProcessor.record(int(gestureIdEntry.get()))
+    try:
+        dataProcessor.prepare_recording(int(gestureIdEntry.get()))
+    except ValueError:
+        print "Not an integer.."
+
+
+def on_closing():
+    top.destroy()
+    ar.end_reading()
+    ar.join()
 
 
 # handle data input of the sensor
@@ -25,4 +34,9 @@ startButton = Tkinter.Button(top, text="GO!", command=start_recording)
 startButton.pack(side=Tkinter.LEFT)
 gestureIdEntry = Tkinter.Entry(top)
 gestureIdEntry.pack(side=Tkinter.RIGHT)
-top.mainloop()
+top.protocol("WM_DELETE_WINDOW", on_closing)
+try:
+    top.mainloop()
+except KeyboardInterrupt:
+    on_closing()
+    print "Closing app through terminal."
