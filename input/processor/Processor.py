@@ -38,7 +38,7 @@ class DataProcessor:
         data = self.get_flat_buffer()
         # add the gesture id as an additional last row
         data = np.append(data, [self.recState.gesture_id])
-        with open(r'raw/sensor_data.csv', 'a') as f:
+        with open("input/raw/sensor_data.csv", 'a') as f:
             writer = csv.writer(f)
             writer.writerow(data)
 

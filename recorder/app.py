@@ -1,5 +1,8 @@
-from reader import AsyncReader
-from processor import Processor
+import sys
+import os.path
+sys.path.append(os.path.abspath(__file__ + "/../.."))
+from input.processor import Processor
+from input.reader import AsyncReader
 import Tkinter
 
 
@@ -24,9 +27,6 @@ def on_closing():
 dataProcessor = Processor.DataProcessor()
 ar = AsyncReader.StdinReader(0, "reader", process_input)
 ar.start()
-
-
-dataProcessor.get_flat_buffer()
 
 # show UI
 top = Tkinter.Tk()
