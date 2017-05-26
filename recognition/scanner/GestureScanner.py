@@ -1,39 +1,69 @@
 import numpy as np
 from numpy import genfromtxt
 from sklearn import tree
+import sys
+import os.path
+
+sys.path.append(os.path.abspath(__file__ + "/../.."))
+from input.processor.Processor import DataProcessor
 
 
 class GestureScanner:
-    n = 0
+    # todo specify exact number of features later here
+    FEATURES = 3
+
+    maxAlphaAtStart = 30
+    maxBetaAtStart = 30
     clf = tree.DecisionTreeClassifier()
 
     # set up and train the machine learning instance with the raw data. This is the data which was previously recorded
     # with the recorder module
     def __init__(self, raw_data_path):
-        raw_data = genfromtxt(raw_data_path, delimiter=',', dtype=float)
+        measurements = genfromtxt(raw_data_path, delimiter=',', dtype=float)
+        entries = len(measurements)
+        if entries == 0:
+            return
+        lastIdx = DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES
 
-        # todo...
-        n = len(raw_data)
+        train_target = measurements[:, lastIdx]
+        measurements = np.delete(measurements, -1, 1)
+        train_data = np.ndarray(
+            shape=(
+                len(measurements),
+                GestureScanner.FEATURES
+            ),
+            dtype=float
+        )
+        for i in range(0, entries):
+            train_data[i] = self._create_features(measurements[i])
 
-        print raw_data
-        # self._create_features() for each line of data; collect that features in an array which will be used to train the ML instance
+        self.clf.fit(train_data, train_target)
 
-    # Creates the feature list from the data1d array. The array is expected to contain n sequential measurements,
-    # with x y z alpha beta gamma each.
+    # Creates the feature list from the data1d array. The array is expected to contain MEASUREMENT_POINTS sequential
+    # measurements with x y z alpha beta gamma each.
     def _create_features(self, data1d):
-        print data1d
-        return
+        # todo calculate each feature and add it to the returned array in the right order
 
-    # Calculates the features of the current sensor data. The array is expected to contain n sequential measurements,
-    # with x y z alpha beta gamma each.
+        # return some samples
+        return [1.0, 2.0, 3.0]
+
+    # Calculates the features of the current sensor data. The array is expected to contain MEASUREMENT_POINTS sequential
+    # measurements, with x y z alpha beta gamma each.
     # Returns the predicted gesture id or -1
     def check_for_gesture(self, data1d):
-        # todo manage start / stop listening based on angles
-
-        if len(data1d < self.n):
+        if len(data1d < DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES):
             return -1
 
-        current_feature_values = self._create_features(data1d)
-        # todo predict gesture and pay attention to probability
+        # get the first 3 alpha and beta values. They need to be near 0 so that we check for a gesture
+        # todo maybe this will also be needed in the recorder module..
+        firstAplphaVals = data1d[3:16:6]
+        firstBetaVals = data1d[4:17:6]
+        if np.amax(firstAplphaVals) <= GestureScanner.maxAlphaAtStart \
+                and np.amax(firstBetaVals) <= GestureScanner.maxBetaAtStart:
+            current_feature_values = self._create_features(data1d)
+            prob = self.clf.predict([current_feature_values])
+            maxIdx = np.argmax(prob)
+            if prob[maxIdx] * 100 > 80:
+                return maxIdx
 
         return -1
