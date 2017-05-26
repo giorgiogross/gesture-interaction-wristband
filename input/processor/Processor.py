@@ -25,7 +25,7 @@ class DataProcessor:
     # insert raw data string into the buffer. Data will be parsed based on x,y,z,alpha,beta,gamma as float values
     def put_raw(self, raw_data):
         raw_data = re.findall(r'[-+]?\d*\.\d+|\d+', raw_data)
-        if len(raw_data) != DataProcessor.MEASUREMENT_VALUES + 1:
+        if len(raw_data) != DataProcessor.MEASUREMENT_VALUES:
             return False
 
         self.buffer[self.arrayPointer] = raw_data
