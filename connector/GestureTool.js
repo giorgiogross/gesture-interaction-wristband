@@ -45,7 +45,7 @@ var DataPackage = function(x, y, z, alpha, beta, gamma) {
     ]);*/
     var localToReference = Util.multiply(localToReference3, localToReference1, localToReference2);
     var worldVector = Util.multiply(localToReference, localVector);
-    worldVector[2] -= 1.0;
+    worldVector[2][0] -= 1.0;
     this.getWorldX = function() {
         return worldVector[0][0];
     }
