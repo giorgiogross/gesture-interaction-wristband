@@ -8,6 +8,8 @@ import os
 # Start listening asynchronously on stdin. Instantiation spawns a new thread which notifies the callback whenever a new
 # line is available. The line is passed as an argument to the callback
 class StdinReader(threading.Thread):
+    readyPrinted = False
+
     def __init__(self, threadID, name, callback):
         threading.Thread.__init__(self)
 
@@ -19,6 +21,10 @@ class StdinReader(threading.Thread):
         self.callback = callback
 
     def run(self):
+        if not self.readyPrinted:
+            print "ready"
+            sys.stdout.flush()
+
         for line in fileinput.input():
             self.callback(line)
         sys.exit(0)
