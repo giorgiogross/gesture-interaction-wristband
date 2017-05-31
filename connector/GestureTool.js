@@ -91,17 +91,17 @@ module.exports = GestureTool = (function() {
         deviceConnected: function(error) {
             if (error) {
                 log.error("Error connecting to the device. Retrying...");
-                return setTimeout(PrivateAPI.connectToDevice.bind(PrivateAPI, peripheral), 2000);
+                return setTimeout(PrivateAPI.connectToDevice.bind(PrivateAPI, Device), 2000);
             }
             log.info("Successfully connected to the device.");
-            PrivateAPI.discoverServices();
+            setTimeout(PrivateAPI.discoverServices.bind(PrivateAPI), 1000);
         },
         discoverServices: function() {
             var noServiceFound = setTimeout(function() {
                 log.error("Device didn't return it's services. Retrying...");
                 PrivateAPI.discoverServices();
             }, 1000);
-            Device.discoverServices(["a4e649f44be511e5885dfeff819cdc9f", "180f"], function(error, services) {
+            Device.discoverServices(null, function(error, services) {
                 if(!error) clearTimeout(noServiceFound);
                 else {
                     log.error("Device didn't return it's services. Retrying...");
