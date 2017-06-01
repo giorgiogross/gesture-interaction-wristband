@@ -19,8 +19,7 @@ def start_recording():
 
 def on_closing():
     top.destroy()
-    ar.end_reading()
-    ar.join()
+    sys.exit(0)
 
 
 # handle data input of the sensor
@@ -38,5 +37,5 @@ top.protocol("WM_DELETE_WINDOW", on_closing)
 try:
     top.mainloop()
 except KeyboardInterrupt:
-    on_closing()
     print "Closing app through terminal."
+    on_closing()

@@ -15,9 +15,6 @@ GestureTool.on("ready", function() {
 
     proc = spawn('python' , ['-u', path]);
     proc.stdout.on('data', function (data){
-        console.log('Message from python (stdout): ');
-        console.log(data.toString('utf-8'));
-        // todo check if data equals 'ready' (and pay attention to carriage return / new line)
         if (data.toString('utf-8').indexOf("ready") === 0) {
             pyready = true;
             log.info("Python scripts is ready!")
