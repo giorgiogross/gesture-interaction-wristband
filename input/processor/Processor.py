@@ -8,7 +8,7 @@ class DataProcessor:
     MEASUREMENT_POINTS = 3
     MEASUREMENT_VALUES = 6
 
-    minRecordAcceleration = 1.5
+    MIN_RECORD_ACCEL = 1.5
 
     def __init__(self):
         self.buffer = np.ndarray(
@@ -31,8 +31,8 @@ class DataProcessor:
         self.buffer[self.arrayPointer] = raw_data
 
         if self.recState.is_prepared() and not self.recState.is_recording and \
-                (np.amax(self.buffer[self.arrayPointer]) >= self.minRecordAcceleration or
-                         abs(np.amin(self.buffer[self.arrayPointer])) >= self.minRecordAcceleration):
+                (np.amax(self.buffer[self.arrayPointer]) >= self.MIN_RECORD_ACCEL or
+                         abs(np.amin(self.buffer[self.arrayPointer])) >= self.MIN_RECORD_ACCEL):
             self.recState.record(self.arrayPointer)
 
         self._inc_array_pointer()

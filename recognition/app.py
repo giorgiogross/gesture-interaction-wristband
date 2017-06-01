@@ -5,6 +5,7 @@ from input.processor import Processor
 from input.reader import AsyncReader
 from scanner.Gestures import Gestures
 from scanner.GestureScanner import GestureScanner
+import time
 
 
 def process_input(in_stream):
@@ -20,9 +21,13 @@ def process_input(in_stream):
         pass
 
 # init gesture scanning
-gestureScanner = GestureScanner("input/raw/sensor_data.csv")
+gestureScanner = GestureScanner("../input/raw/sensor_data.csv")
 
 # handle data input of the sensor
 dataProcessor = Processor.DataProcessor()
 ar = AsyncReader.StdinReader(0, "reader", process_input)
 ar.start()
+
+# keep this process alive until ctrl-d is pressed. This can be removed when we add the tkinter dashboard
+while(True):
+    time.sleep(1)

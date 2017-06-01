@@ -12,6 +12,7 @@ class GestureScanner:
     # todo specify exact number of features later here
     FEATURES = 3
 
+    # maximum variance on alpha and beta rotation axis (currently ignored)
     maxAlphaAtStart = 30
     maxBetaAtStart = 30
     clf = tree.DecisionTreeClassifier()
@@ -54,15 +55,15 @@ class GestureScanner:
         if len(data1d < DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES):
             return -1
 
-        # get the first 3 alpha and beta values. They need to be near 0 so that we check for a gesture
-        # todo maybe this will also be needed in the recorder module..
-        firstAplphaVals = data1d[3:16:6]
-        firstBetaVals = data1d[4:17:6]
-        if np.amax(firstAplphaVals) <= GestureScanner.maxAlphaAtStart \
-                and np.amax(firstBetaVals) <= GestureScanner.maxBetaAtStart:
+        # get the first x,y and z. At least of them needs to be greater than MIN_RECORD_ACCEL specified in
+        # recorder/app.py in order to check for a gesture
+        if data1d[0] >= DataProcessor.MIN_RECORD_ACCEL \
+                or data1d[1] >= DataProcessor.MIN_RECORD_ACCEL \
+                or data1d[2] >= DataProcessor.MIN_RECORD_ACCEL:
             current_feature_values = self._create_features(data1d)
             prob = self.clf.predict([current_feature_values])
             maxIdx = np.argmax(prob)
+            # print 'Calculated probability: ' + prob[maxIdx]
             if prob[maxIdx] * 100 > 80:
                 return maxIdx
 
