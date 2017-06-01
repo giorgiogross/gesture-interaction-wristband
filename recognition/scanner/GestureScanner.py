@@ -46,13 +46,13 @@ class GestureScanner:
         # todo calculate each feature and add it to the returned array in the right order
 
         # return some samples
-        return [1.0, 2.0, 3.0]
+        return np.array([1.0, 2.0, 3.0], dtype=float)
 
     # Calculates the features of the current sensor data. The array is expected to contain MEASUREMENT_POINTS sequential
     # measurements, with x y z alpha beta gamma each.
     # Returns the predicted gesture id or -1
     def check_for_gesture(self, data1d):
-        if len(data1d < DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES):
+        if len(data1d) < DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES:
             return -1
 
         # get the first x,y and z. At least of them needs to be greater than MIN_RECORD_ACCEL specified in
@@ -61,9 +61,8 @@ class GestureScanner:
                 or data1d[1] >= DataProcessor.MIN_RECORD_ACCEL \
                 or data1d[2] >= DataProcessor.MIN_RECORD_ACCEL:
             current_feature_values = self._create_features(data1d)
-            prob = self.clf.predict([current_feature_values])
+            prob = self.clf.predict_proba([current_feature_values])[0]
             maxIdx = np.argmax(prob)
-            # print 'Calculated probability: ' + prob[maxIdx]
             if prob[maxIdx] * 100 > 80:
                 return maxIdx
 

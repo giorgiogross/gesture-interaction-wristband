@@ -68,7 +68,7 @@ class DataProcessor:
             out_array,
             np.roll(
                 self.buffer.flatten(),
-                DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES - self.arrayPointer)
+                DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES - (self.arrayPointer) * DataProcessor.MEASUREMENT_VALUES)
         )
         return out_array
 
