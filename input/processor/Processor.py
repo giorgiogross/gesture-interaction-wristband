@@ -5,25 +5,34 @@ import csv
 
 # Handles the input buffer and writes sensor values to a file when recording
 class DataProcessor:
-    n = 10
-    m = 6
-    minRecordAcceleration = 1.5
+    MEASUREMENT_POINTS = 3
+    MEASUREMENT_VALUES = 6
+
+    MIN_RECORD_ACCEL = 1.5
 
     def __init__(self):
-        self.buffer = np.ndarray(shape=(self.n, self.m), dtype=float)
+        self.buffer = np.ndarray(
+            shape=(
+                DataProcessor.MEASUREMENT_POINTS,
+                DataProcessor.MEASUREMENT_VALUES
+            ),
+            dtype=float
+        )
         self.buffer.fill(0)
         self.arrayPointer = 0
         self.recState = RecordState()
 
     # insert raw data string into the buffer. Data will be parsed based on x,y,z,alpha,beta,gamma as float values
     def put_raw(self, raw_data):
-        if len(raw_data) != 7:
-            return
+        raw_data = re.findall(r'[-+]?\d*\.\d+|\d+', raw_data)
+        if len(raw_data) != DataProcessor.MEASUREMENT_VALUES:
+            return False
 
-        self.buffer[self.arrayPointer] = re.findall(r'[-+]?\d*\.\d+|\d+', raw_data)
+        self.buffer[self.arrayPointer] = raw_data
 
         if self.recState.is_prepared() and not self.recState.is_recording and \
-                (np.amax(self.buffer[self.arrayPointer]) >= self.minRecordAcceleration or abs(np.amin(self.buffer[self.arrayPointer])) >= self.minRecordAcceleration):
+                (np.amax(self.buffer[self.arrayPointer]) >= self.MIN_RECORD_ACCEL or
+                         abs(np.amin(self.buffer[self.arrayPointer])) >= self.MIN_RECORD_ACCEL):
             self.recState.record(self.arrayPointer)
 
         self._inc_array_pointer()
@@ -31,14 +40,16 @@ class DataProcessor:
             self.write_buffer_to_csv()
             self.clean()
 
+        return True
+
     def _inc_array_pointer(self):
-        self.arrayPointer = (self.arrayPointer + 1) % self.n
+        self.arrayPointer = (self.arrayPointer + 1) % DataProcessor.MEASUREMENT_POINTS
 
     def write_buffer_to_csv(self):
         data = self.get_flat_buffer()
         # add the gesture id as an additional last row
         data = np.append(data, [self.recState.gesture_id])
-        with open("input/raw/sensor_data.csv", 'a') as f:
+        with open("../input/raw/sensor_data.csv", 'a') as f:
             writer = csv.writer(f)
             writer.writerow(data)
 
@@ -53,12 +64,16 @@ class DataProcessor:
     # create a 1D array from the 2D buffer and shift all values right so that the latest value is at the buffer end
     def get_flat_buffer(self):
         out_array = np.array([])
-        out_array = np.append(out_array, np.roll(self.buffer.flatten(), self.n * self.m - self.arrayPointer))
+        out_array = np.append(
+            out_array,
+            np.roll(
+                self.buffer.flatten(),
+                DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES - (self.arrayPointer) * DataProcessor.MEASUREMENT_VALUES)
+        )
         return out_array
 
 
 class RecordState:
-
     def __init__(self):
         self.is_recording = False
         self.gesture_id = -1
