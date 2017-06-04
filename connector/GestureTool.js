@@ -47,13 +47,13 @@ var DataPackage = function(x, y, z, alpha, beta, gamma) {
     var worldVector = Util.multiply(localToReference, localVector);
     worldVector[2][0] -= 1.0;
     this.getWorldX = function() {
-        return worldVector[0][0];
+        return Math.round(worldVector[0][0]*1000)/1000;
     }
     this.getWorldY = function() {
-        return worldVector[1][0];
+        return Math.round(worldVector[1][0]*1000)/1000;
     }
     this.getWorldZ = function() {
-        return worldVector[2][0];
+        return Math.round(worldVector[2][0]*1000)/1000;
     }
 }
 module.exports = GestureTool = (function() {
