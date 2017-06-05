@@ -55,11 +55,9 @@ class GestureScanner:
         if len(data1d) < DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES:
             return -1
 
-        # get the first x,y and z. At least of them needs to be greater than MIN_RECORD_ACCEL specified in
-        # recorder/app.py in order to check for a gesture
-        if data1d[0] >= DataProcessor.MIN_RECORD_ACCEL \
-                or data1d[1] >= DataProcessor.MIN_RECORD_ACCEL \
-                or data1d[2] >= DataProcessor.MIN_RECORD_ACCEL:
+        # check if acceleration vector indicates the start of a gesture just like we did when recording the gesture
+        accelVector = data1d[0:3:1]
+        if DataProcessor.is_gesture_start(accelVector):
             current_feature_values = self._create_features(data1d)
             prob = self.clf.predict_proba([current_feature_values])[0]
             maxIdx = np.argmax(prob)
