@@ -5,10 +5,13 @@ from input.processor import Processor
 from input.reader import AsyncReader
 from scanner.Gestures import Gestures
 from scanner.GestureScanner import GestureScanner
+from dashboard.plot import Dashboard
 import time
 
+dashboard = Dashboard()
 
 def process_input(in_stream):
+    global dashboard
     if not dataProcessor.put_raw(in_stream):
         return
 
@@ -24,6 +27,8 @@ def process_input(in_stream):
         print "Right swipe recognized"
         # clear the buffer to avoid future gesture triggers
         dataProcessor.clean()
+        
+    dashboard.action(gesture_id)
 
 # init gesture scanning
 gestureScanner = GestureScanner("../input/raw/sensor_data.csv", True)
@@ -33,6 +38,4 @@ dataProcessor = Processor.DataProcessor()
 ar = AsyncReader.StdinReader(0, "reader", process_input)
 ar.start()
 
-# keep this process alive until ctrl-d is pressed. This can be removed when we add the tkinter dashboard
-while(True):
-    time.sleep(1)
+dashboard.init()
