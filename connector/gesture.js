@@ -18,7 +18,7 @@ GestureTool.on("ready", function() {
         if (data.toString('utf-8').indexOf("ready") === 0) {
             pyready = true;
             log.info("Python scripts is ready!")
-        }
+        } else console.log(data.toString('utf-8'));
     });
     proc.on('error', (err) => {
         console.log('Failed to start python.');

@@ -5,10 +5,10 @@ import csv
 
 # Handles the input buffer and writes sensor values to a file when recording
 class DataProcessor:
-    MEASUREMENT_POINTS = 3
+    MEASUREMENT_POINTS = 4
     MEASUREMENT_VALUES = 6
 
-    minRecordAcceleration = 1.5
+    MIN_RECORD_ACCEL = 1.3
 
     def __init__(self):
         self.buffer = np.ndarray(
@@ -22,6 +22,11 @@ class DataProcessor:
         self.arrayPointer = 0
         self.recState = RecordState()
 
+    @staticmethod
+    # Checks if the passed acceleration vector indicates the start of a gesture (length > MIN_RECORD_ACCEL)
+    def is_gesture_start(accelVector):
+        return np.linalg.norm(accelVector) >= DataProcessor.MIN_RECORD_ACCEL
+
     # insert raw data string into the buffer. Data will be parsed based on x,y,z,alpha,beta,gamma as float values
     def put_raw(self, raw_data):
         raw_data = re.findall(r'[-+]?\d*\.\d+|\d+', raw_data)
@@ -30,13 +35,16 @@ class DataProcessor:
 
         self.buffer[self.arrayPointer] = raw_data
 
+        accelVector = self.buffer[self.arrayPointer][0:3:1]
         if self.recState.is_prepared() and not self.recState.is_recording and \
-                (np.amax(self.buffer[self.arrayPointer]) >= self.minRecordAcceleration or
-                         abs(np.amin(self.buffer[self.arrayPointer])) >= self.minRecordAcceleration):
+                (DataProcessor.is_gesture_start(accelVector)):
+            print 'Gesture start detected! Norm of acceleration vector:'
+            print np.linalg.norm(accelVector)
             self.recState.record(self.arrayPointer)
 
         self._inc_array_pointer()
         if self.recState.is_recording and self.arrayPointer == self.recState.start_idx:
+            # we recorded all values. Write them to a file and reset all data structures:
             self.write_buffer_to_csv()
             self.clean()
 
@@ -68,7 +76,7 @@ class DataProcessor:
             out_array,
             np.roll(
                 self.buffer.flatten(),
-                DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES - self.arrayPointer)
+                DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES - (self.arrayPointer) * DataProcessor.MEASUREMENT_VALUES)
         )
         return out_array
 
