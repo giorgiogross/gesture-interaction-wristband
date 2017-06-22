@@ -107,6 +107,7 @@ class GestureScanner:
         clfGausBayesName = "Gaussian Bayes"
 
         # cross validation
+        print "- - - - - - - -              Leave one out results:              - - - - - - - -"
         self._leave_one_out_validation(clfRndForest10Name, clfRndForest10, train, target)
         self._leave_one_out_validation(clfRndForest100Name, clfRndForest100, train, target)
         self._leave_one_out_validation(clfDecisionTreeName, clfDecisionTree, train, target)
@@ -114,58 +115,34 @@ class GestureScanner:
         self._leave_one_out_validation(clf11NNName, clf11NN, train, target)
         self._leave_one_out_validation(clfSVMName, clfSVM, train, target)
         self._leave_one_out_validation(clfGausBayesName, clfGausBayes, train, target)
-
-        self._nfold_cross_validation(10, clf5NNName, clf5NN, train, target)
-
-    def _leave_one_out_validation(self, clfName, clf, train, target):
-        print "- - - - - - - -              Leave one out results:              - - - - - - - -"
-        right_classified_samples = 0.0
-        wrong_classified_samples = 0.0
-        train_samples = (target.size * 1.0) - 1
-        test_samples = 1.0
-        samples = target.size
-        time_approx = 0
-
-        print ">" + clfName + ":"
-
-        for n in range(0, samples):
-            # extract one element
-            m_test_train = [train[n]]
-            m_test_target = [target[n]]
-            m_train = np.delete(train, n, axis=0)
-            m_target = np.delete(target, n, axis=0)
-
-            # train classifier with remaining elements
-            clf.fit(m_train, m_target)
-
-            # test
-            ct = time.time()
-            predictions = clf.predict(m_test_train)
-            time_approx += time.time() - ct
-
-            for i in range(0, predictions.size):
-                if predictions[i] == m_test_target[i]:
-                    right_classified_samples += 1
-                else:
-                    wrong_classified_samples += 1
-            self._update_progress(round(n / (samples * 1.0), 2) + 0.01)
-
-        # compute results
-        time_approx = int(round(time_approx * 1000000.0 / samples))
-        precision = 0.0
-        accuracy = 0.0
-        if right_classified_samples != 0:
-            precision = round((right_classified_samples + wrong_classified_samples) / right_classified_samples, 3)
-            accuracy = round(right_classified_samples / (right_classified_samples + wrong_classified_samples), 3)
-
-        # print stats
-        print " PRECISION=" + repr(precision)+"    ACCURACY=" + repr(accuracy) \
-              + "    RECALL=" + repr(right_classified_samples) + "    ~COMP.TIME=" + repr(time_approx) + "mis"
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print "\n\n"
 
-    def _nfold_cross_validation(self, n, clfName, clf, train, target):
-        print "- - - - - - - -              " + repr(n) + "fold cross validation:              - - - - - - - -"
+        print "- - - - - - - -              10fold cross validation:              - - - - - - - -"
+        nfold = 10
+        self._nfold_cross_validation(clfRndForest10Name, clfRndForest10, train, target, nfold)
+        self._nfold_cross_validation(clfRndForest100Name, clfRndForest100, train, target, nfold)
+        self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
+        self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
+        self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
+        self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
+        print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+        print "\n\n"
+
+        print "- - - - - - - -              25fold cross validation:              - - - - - - - -"
+        nfold = 25
+        self._nfold_cross_validation(clfRndForest10Name, clfRndForest10, train, target, nfold)
+        self._nfold_cross_validation(clfRndForest100Name, clfRndForest100, train, target, nfold)
+        self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
+        self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
+        self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
+        self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
+        print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+        print "\n\n"
+
+    def _leave_one_out_validation(self, clfName, clf, train, target):
         right_classified_samples = 0.0
         wrong_classified_samples = 0.0
         train_samples = (target.size * 1.0) - 1
@@ -173,22 +150,7 @@ class GestureScanner:
         samples = target.size
         time_approx = 0
 
-        if n > samples:
-            print "Please choose a smaller value"
-            return;
         print ">" + clfName + ":"
-
-        # modify train and target arrays properly
-        ratio = samples / (n * 1.0)
-        if not ratio.is_integer():
-            ratio = (int)(round(ratio))
-            validSamples = ratio * n
-            dropNum = samples - validSamples
-            for i in range(validSamples, validSamples + dropNum):
-                train = np.delete(train, validSamples)
-                target = np.delete(target, validSamples)
-        samples = target.size
-        print target.size
 
         for n in range(0, samples):
             # extract one element
@@ -223,6 +185,37 @@ class GestureScanner:
         # print stats
         print " PRECISION=" + repr(precision)+"    ACCURACY=" + repr(accuracy) \
               + "    RECALL=" + repr(right_classified_samples) + "    ~COMP.TIME=" + repr(time_approx) + "mis"
+
+    def _nfold_cross_validation(self, clfName, clf, train, target, n=10):
+        samples = target.size
+        if n >= samples:
+            print "Please choose a smaller value"
+            return
+        print ">" + clfName + ":"
+
+        # modify train and target arrays properly
+        ratio = n / (samples * 1.0)
+
+        # divide arrays to represent a nfold cross validation instance
+        m_train, m_test_train, m_target, m_test_target = train_test_split(train, target, test_size=ratio)
+
+        # train and test classifier
+        clf.fit(m_train, m_target)
+        train_samples = m_target.size * 1.0
+        test_samples = m_test_target.size * 1.0
+        right_classified_samples = accuracy_score(m_test_target, clf.predict(m_test_train), normalize=False)
+        wrong_classified_samples = test_samples - right_classified_samples
+
+        # compute results
+        precision = 0.0
+        accuracy = 0.0
+        if right_classified_samples != 0:
+            precision = round((right_classified_samples + wrong_classified_samples) / right_classified_samples, 3)
+            accuracy = round(right_classified_samples / (right_classified_samples + wrong_classified_samples), 3)
+
+        # print stats
+        print " PRECISION=" + repr(precision)+"    ACCURACY=" + repr(accuracy) \
+              + "    RECALL=" + repr(right_classified_samples)
 
     #X_train, X_test, y_train, y_test = train_test_split(self.train_data, self.train_target, test_size= .5)
     #print accuracy_score(y_test, predictions)
