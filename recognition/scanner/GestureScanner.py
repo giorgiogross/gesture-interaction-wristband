@@ -11,6 +11,7 @@ import sys
 
 # data processing constants are needed in this file
 import os.path
+
 sys.path.append(os.path.abspath(__file__ + "/../.."))
 from input.processor.Processor import DataProcessor
 
@@ -18,8 +19,8 @@ from input.processor.Processor import DataProcessor
 from sklearn.externals.six import StringIO
 import pydot
 # Classifier testing
-from sklearn.cross_validation import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score
+
 
 class GestureScanner:
     # todo specify exact number of features later here
@@ -49,7 +50,7 @@ class GestureScanner:
         lastIdx = DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES
 
         # Sort data by gesture id (at last index...)
-        measurements = measurements[measurements[:,lastIdx].argsort()]
+        measurements = measurements[measurements[:, lastIdx].argsort()]
 
         self.train_target = measurements[:, lastIdx]
         measurements = np.delete(measurements, -1, 1)
@@ -81,12 +82,12 @@ class GestureScanner:
         diff = abs(numRight - numLeft)
         if numRight <= numLeft:
             for i in range(numLeft - diff, numLeft):
-                target = np.delete(target, numLeft-diff-1, axis=0)
-                train = np.delete(train, numLeft-diff-1, axis=0)
+                target = np.delete(target, numLeft - diff - 1, axis=0)
+                train = np.delete(train, numLeft - diff - 1, axis=0)
         else:
             for i in range(numLeft + numRight - diff, numLeft + numRight):
-                target = np.delete(target, numLeft + numRight - diff-1, axis=0)
-                train = np.delete(train, numLeft + numRight - diff-1, axis=0)
+                target = np.delete(target, numLeft + numRight - diff - 1, axis=0)
+                train = np.delete(train, numLeft + numRight - diff - 1, axis=0)
         print "Dropped redundant entries"
         print ""
 
@@ -101,19 +102,19 @@ class GestureScanner:
         clf5NNName = "5 Nearest Neighbours"
         clf11NN = KNeighborsClassifier(n_neighbors=11)
         clf11NNName = "11 Nearest Neighbours"
-        clfSVM = svm.SVC()
+        clfSVM = svm.SVC(kernel='linear', C=1)
         clfSVMName = "SVM"
         clfGausBayes = GaussianNB()
         clfGausBayesName = "Gaussian Bayes"
 
         # cross validation
-        print "- - - - - - - -              Leave one out results:              - - - - - - - -"
+        print "- - - - - - - -              Leave-one-out results:              - - - - - - - -"
         self._leave_one_out_validation(clfRndForest10Name, clfRndForest10, train, target)
         self._leave_one_out_validation(clfRndForest100Name, clfRndForest100, train, target)
         self._leave_one_out_validation(clfDecisionTreeName, clfDecisionTree, train, target)
         self._leave_one_out_validation(clf5NNName, clf5NN, train, target)
         self._leave_one_out_validation(clf11NNName, clf11NN, train, target)
-        self._leave_one_out_validation(clfSVMName, clfSVM, train, target)
+        # self._leave_one_out_validation(clfSVMName, clfSVM, train, target)
         self._leave_one_out_validation(clfGausBayesName, clfGausBayes, train, target)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print "\n\n"
@@ -125,7 +126,7 @@ class GestureScanner:
         self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
         self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
         self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
-        self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
         self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print "\n\n"
@@ -137,7 +138,7 @@ class GestureScanner:
         self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
         self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
         self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
-        self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
         self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print "\n\n"
@@ -176,15 +177,17 @@ class GestureScanner:
 
         # compute results
         time_approx = int(round(time_approx * 1000000.0 / samples))
+        recall = 0.0
         precision = 0.0
         accuracy = 0.0
         if right_classified_samples != 0:
-            precision = round((right_classified_samples + wrong_classified_samples) / right_classified_samples, 3)
-            accuracy = round(right_classified_samples / (right_classified_samples + wrong_classified_samples), 3)
+            recall = round((right_classified_samples) / (right_classified_samples + wrong_classified_samples), 3)
+            precision = round((right_classified_samples) / (right_classified_samples + wrong_classified_samples), 3)
+            accuracy = round(right_classified_samples / (samples), 3)
 
         # print stats
-        print " PRECISION=" + repr(precision)+"    ACCURACY=" + repr(accuracy) \
-              + "    RECALL=" + repr(right_classified_samples) + "    ~COMP.TIME=" + repr(time_approx) + "mis"
+        print " PRECISION=" + repr(precision) + "    ACCURACY=" + repr(accuracy) \
+              + "    RECALL=" + repr(recall) + "    ~PREDICTION-TIME=" + repr(time_approx) + "mcs"
 
     def _nfold_cross_validation(self, clfName, clf, train, target, n=10):
         samples = target.size
@@ -193,35 +196,22 @@ class GestureScanner:
             return
         print ">" + clfName + ":"
 
-        # modify train and target arrays properly
-        ratio = n / (samples * 1.0)
+        self._update_progress(0.0)
+        accuracy_score = cross_val_score(clf, train, target, cv=n, scoring='accuracy')
+        self._update_progress(0.3)
+        precision_score = cross_val_score(clf, train, target, cv=n, scoring='average_precision')
+        self._update_progress(0.6)
+        recall_score = cross_val_score(clf, train, target, cv=n, scoring='recall')
+        self._update_progress(1.0)
 
-        # divide arrays to represent a nfold cross validation instance
-        m_train, m_test_train, m_target, m_test_target = train_test_split(train, target, test_size=ratio)
-
-        # train and test classifier
-        clf.fit(m_train, m_target)
-        train_samples = m_target.size * 1.0
-        test_samples = m_test_target.size * 1.0
-        right_classified_samples = accuracy_score(m_test_target, clf.predict(m_test_train), normalize=False)
-        wrong_classified_samples = test_samples - right_classified_samples
-
-        # compute results
-        precision = 0.0
-        accuracy = 0.0
-        if right_classified_samples != 0:
-            precision = round((right_classified_samples + wrong_classified_samples) / right_classified_samples, 3)
-            accuracy = round(right_classified_samples / (right_classified_samples + wrong_classified_samples), 3)
-
-        # print stats
-        print " PRECISION=" + repr(precision)+"    ACCURACY=" + repr(accuracy) \
-              + "    RECALL=" + repr(right_classified_samples)
-
-    #X_train, X_test, y_train, y_test = train_test_split(self.train_data, self.train_target, test_size= .5)
-    #print accuracy_score(y_test, predictions)
+        # print stats with 95% confidence interval
+        print ("PRECISION=%0.2f (+/- %0.2f)    ACCURACY=%0.2f (+/- %0.2f)    RECALL=%0.2f (+/- %0.2f)" %
+               (precision_score.mean(), precision_score.std() * 2,
+                accuracy_score.mean(), accuracy_score.std() * 2,
+                recall_score.mean(), recall_score.std() * 2))
 
     def _update_progress(self, p):
-        pr = int(round(p*100))
+        pr = int(round(p * 100))
         sys.stdout.write("\r%d%%" % pr)
         if pr >= 100:
             sys.stdout.write("\r")
