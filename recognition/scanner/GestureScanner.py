@@ -20,7 +20,10 @@ from sklearn.externals.six import StringIO
 import pydot
 # Classifier testing
 from sklearn.model_selection import cross_val_score
-
+from sklearn import metrics
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import recall_score
 
 class GestureScanner:
     # todo specify exact number of features later here
@@ -144,14 +147,16 @@ class GestureScanner:
         print "\n\n"
 
     def _leave_one_out_validation(self, clfName, clf, train, target):
-        right_classified_samples = 0.0
-        wrong_classified_samples = 0.0
         train_samples = (target.size * 1.0) - 1
         test_samples = 1.0
         samples = target.size
         time_approx = 0
+        resPredictions = []
+
+        #resTN, resFP, resFN, resTP = 0
 
         print ">" + clfName + ":"
+
 
         for n in range(0, samples):
             # extract one element
@@ -168,22 +173,14 @@ class GestureScanner:
             predictions = clf.predict(m_test_train)
             time_approx += time.time() - ct
 
-            for i in range(0, predictions.size):
-                if predictions[i] == m_test_target[i]:
-                    right_classified_samples += 1
-                else:
-                    wrong_classified_samples += 1
+            resPredictions.append(predictions)
             self._update_progress(round(n / (samples * 1.0), 2) + 0.01)
 
         # compute results
         time_approx = int(round(time_approx * 1000000.0 / samples))
-        recall = 0.0
-        precision = 0.0
-        accuracy = 0.0
-        if right_classified_samples != 0:
-            recall = round((right_classified_samples) / (right_classified_samples + wrong_classified_samples), 3)
-            precision = round((right_classified_samples) / (right_classified_samples + wrong_classified_samples), 3)
-            accuracy = round(right_classified_samples / (samples), 3)
+        recall = recall_score(target, resPredictions)
+        precision = average_precision_score(target, resPredictions, average='samples')
+        accuracy = accuracy_score(target, resPredictions)
 
         # print stats
         print " PRECISION=" + repr(precision) + "    ACCURACY=" + repr(accuracy) \
@@ -191,7 +188,7 @@ class GestureScanner:
 
     def _nfold_cross_validation(self, clfName, clf, train, target, n=10):
         samples = target.size
-        if n >= samples:
+        if n > samples:
             print "Please choose a smaller value"
             return
         print ">" + clfName + ":"
