@@ -12,6 +12,7 @@ dashboard = Dashboard()
 
 def process_input(in_stream):
     global dashboard
+
     if not dataProcessor.put_raw(in_stream):
         return
 

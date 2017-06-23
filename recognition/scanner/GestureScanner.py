@@ -1,68 +1,218 @@
 import numpy as np
+import time
 from numpy import genfromtxt
 # some classifiers
 from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn import svm
+from sklearn.naive_bayes import GaussianNB
 import sys
 
 # data processing constants are needed in this file
 import os.path
+
 sys.path.append(os.path.abspath(__file__ + "/../.."))
 from input.processor.Processor import DataProcessor
+
 # Tree diagram generation
 from sklearn.externals.six import StringIO
 import pydot
 # Classifier testing
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn import metrics
+from sklearn.metrics import average_precision_score
 from sklearn.metrics import accuracy_score
-
+from sklearn.metrics import recall_score
 
 class GestureScanner:
     # todo specify exact number of features later here
     FEATURES = 18
     POINTS_FOR_FEATURE = 3
 
-    # maximum variance on alpha and beta rotation axis (currently ignored)
-    maxAlphaAtStart = 30
-    maxBetaAtStart = 30
+    train_data = np.ndarray(
+        shape=(
+            0,
+            0
+        ),
+        dtype=float
+    )
+    train_target = []
+    entries = 0
+
     clf = RandomForestClassifier(n_estimators=100)
 
     # set up and train the machine learning instance with the raw data. This is the data which was previously recorded
     # with the recorder module
-    def __init__(self, raw_data_path, print_accuracy=False):
+    def __init__(self, raw_data_path, print_stats=False):
         measurements = genfromtxt(raw_data_path, delimiter=',', dtype=float)
-        entries = len(measurements)
-        if entries == 0:
+        self.entries = len(measurements)
+        if self.entries == 0:
             return
+
         lastIdx = DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES
 
-        train_target = measurements[:, lastIdx]
+        # Sort data by gesture id (at last index...)
+        measurements = measurements[measurements[:, lastIdx].argsort()]
+
+        self.train_target = measurements[:, lastIdx]
         measurements = np.delete(measurements, -1, 1)
-        train_data = np.ndarray(
+        self.train_data = np.ndarray(
             shape=(
                 len(measurements),
                 GestureScanner.FEATURES
             ),
             dtype=float
         )
+        for i in range(0, self.entries):
+            self.train_data[i] = self._create_features(measurements[i])
 
-        for i in range(0, entries):
-            train_data[i] = self._create_features(measurements[i])
+        self.clf.fit(self.train_data, self.train_target)
 
-        # split array in half to eventually test the accuracy of our classifier
-        X_train, X_test, y_train, y_test = train_test_split(train_data, train_target, test_size= .5)
-        if print_accuracy:
-            train_data = X_train
-            train_target = y_train
+        if print_stats:
+            self._print_stats()
 
-        self.clf.fit(train_data, train_target)
+    def _print_stats(self):
+        train = self.train_data
+        target = self.train_target
 
-        if print_accuracy:
-            predictions = self.clf.predict(X_test)
-            print 'Accuracy of the classifier:'
-            print accuracy_score(y_test, predictions)
+        numLeft = list(target).count(0)
+        numRight = list(target).count(1)
+        print "Raw data contains " + repr(numRight) + " recordings for RIGHT SWIPE and " \
+              + repr(numLeft) + " recordings for LEFT SWIPE"
 
+        # match rows for left and right swipe
+        diff = abs(numRight - numLeft)
+        if numRight <= numLeft:
+            for i in range(numLeft - diff, numLeft):
+                target = np.delete(target, numLeft - diff - 1, axis=0)
+                train = np.delete(train, numLeft - diff - 1, axis=0)
+        else:
+            for i in range(numLeft + numRight - diff, numLeft + numRight):
+                target = np.delete(target, numLeft + numRight - diff - 1, axis=0)
+                train = np.delete(train, numLeft + numRight - diff - 1, axis=0)
+        print "Dropped redundant entries"
+        print ""
+
+        # set up our classifiers
+        clfRndForest10 = RandomForestClassifier(n_estimators=10)
+        clfRndForest10Name = "Random Forest with 10 estimators"
+        clfRndForest100 = RandomForestClassifier(n_estimators=100)
+        clfRndForest100Name = "Random Forest with 100 estimators"
+        clfDecisionTree = tree.DecisionTreeClassifier()
+        clfDecisionTreeName = "Decision Tree"
+        clf5NN = KNeighborsClassifier(n_neighbors=5)
+        clf5NNName = "5 Nearest Neighbours"
+        clf11NN = KNeighborsClassifier(n_neighbors=11)
+        clf11NNName = "11 Nearest Neighbours"
+        clfSVM = svm.SVC(kernel='linear', C=1)
+        clfSVMName = "SVM"
+        clfGausBayes = GaussianNB()
+        clfGausBayesName = "Gaussian Bayes"
+
+        # cross validation
+        print "- - - - - - - -              Leave-one-out results:              - - - - - - - -"
+        self._leave_one_out_validation(clfRndForest10Name, clfRndForest10, train, target)
+        self._leave_one_out_validation(clfRndForest100Name, clfRndForest100, train, target)
+        self._leave_one_out_validation(clfDecisionTreeName, clfDecisionTree, train, target)
+        self._leave_one_out_validation(clf5NNName, clf5NN, train, target)
+        self._leave_one_out_validation(clf11NNName, clf11NN, train, target)
+        # self._leave_one_out_validation(clfSVMName, clfSVM, train, target)
+        self._leave_one_out_validation(clfGausBayesName, clfGausBayes, train, target)
+        print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+        print "\n\n"
+
+        print "- - - - - - - -              10fold cross validation:              - - - - - - - -"
+        nfold = 10
+        self._nfold_cross_validation(clfRndForest10Name, clfRndForest10, train, target, nfold)
+        self._nfold_cross_validation(clfRndForest100Name, clfRndForest100, train, target, nfold)
+        self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
+        self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
+        self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
+        # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
+        print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+        print "\n\n"
+
+        print "- - - - - - - -              25fold cross validation:              - - - - - - - -"
+        nfold = 25
+        self._nfold_cross_validation(clfRndForest10Name, clfRndForest10, train, target, nfold)
+        self._nfold_cross_validation(clfRndForest100Name, clfRndForest100, train, target, nfold)
+        self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
+        self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
+        self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
+        # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
+        print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+        print "\n\n"
+
+    def _leave_one_out_validation(self, clfName, clf, train, target):
+        train_samples = (target.size * 1.0) - 1
+        test_samples = 1.0
+        samples = target.size
+        time_approx = 0
+        resPredictions = []
+
+        #resTN, resFP, resFN, resTP = 0
+
+        print ">" + clfName + ":"
+
+
+        for n in range(0, samples):
+            # extract one element
+            m_test_train = [train[n]]
+            m_test_target = [target[n]]
+            m_train = np.delete(train, n, axis=0)
+            m_target = np.delete(target, n, axis=0)
+
+            # train classifier with remaining elements
+            clf.fit(m_train, m_target)
+
+            # test
+            ct = time.time()
+            predictions = clf.predict(m_test_train)
+            time_approx += time.time() - ct
+
+            resPredictions.append(predictions)
+            self._update_progress(round(n / (samples * 1.0), 2) + 0.01)
+
+        # compute results
+        time_approx = int(round(time_approx * 1000000.0 / samples))
+        recall = recall_score(target, resPredictions)
+        precision = average_precision_score(target, resPredictions, average='samples')
+        accuracy = accuracy_score(target, resPredictions)
+
+        # print stats
+        print " PRECISION=" + repr(precision) + "    ACCURACY=" + repr(accuracy) \
+              + "    RECALL=" + repr(recall) + "    ~PREDICTION-TIME=" + repr(time_approx) + "mcs"
+
+    def _nfold_cross_validation(self, clfName, clf, train, target, n=10):
+        samples = target.size
+        if n > samples:
+            print "Please choose a smaller value"
+            return
+        print ">" + clfName + ":"
+
+        self._update_progress(0.0)
+        accuracy_score = cross_val_score(clf, train, target, cv=n, scoring='accuracy')
+        self._update_progress(0.3)
+        precision_score = cross_val_score(clf, train, target, cv=n, scoring='average_precision')
+        self._update_progress(0.6)
+        recall_score = cross_val_score(clf, train, target, cv=n, scoring='recall')
+        self._update_progress(1.0)
+
+        # print stats with 95% confidence interval
+        print ("PRECISION=%0.2f (+/- %0.2f)    ACCURACY=%0.2f (+/- %0.2f)    RECALL=%0.2f (+/- %0.2f)" %
+               (precision_score.mean(), precision_score.std() * 2,
+                accuracy_score.mean(), accuracy_score.std() * 2,
+                recall_score.mean(), recall_score.std() * 2))
+
+    def _update_progress(self, p):
+        pr = int(round(p * 100))
+        sys.stdout.write("\r%d%%" % pr)
+        if pr >= 100:
+            sys.stdout.write("\r")
+        sys.stdout.flush()
 
     # Create a pdf file showing how the tree classifier looks like. Only call this with a tree.DecisionTreeClassifier!
     def _create_tree_diagram(self, clf):
@@ -161,6 +311,7 @@ class GestureScanner:
             prob = self.clf.predict_proba([current_feature_values])[0]
             print 'Probability:'
             print prob
+
             maxIdx = np.argmax(prob)
             if prob[maxIdx] * 100 > 80:
                 return maxIdx
