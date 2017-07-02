@@ -21,7 +21,7 @@ import pydot
 # Classifier testing
 from sklearn.model_selection import cross_val_score
 from sklearn import metrics
-from sklearn.metrics import average_precision_score
+from sklearn.metrics import precision_score
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import recall_score
 
@@ -187,7 +187,7 @@ class GestureScanner:
         # compute results
         time_approx = int(round(time_approx * 1000000.0 / samples))
         recall = recall_score(target, resPredictions, average='micro')
-        precision = 0 #average_precision_score(target, resPredictions, average='micro')
+        precision = precision_score(target, resPredictions, average='micro')
         accuracy = accuracy_score(target, resPredictions)
 
         # print stats
@@ -204,16 +204,16 @@ class GestureScanner:
         self._update_progress(0.0)
         accuracy_score = cross_val_score(clf, train, target, cv=n, scoring='accuracy')
         self._update_progress(0.3)
-        precision_score = 0 #cross_val_score(clf, train, target, cv=n, scoring='average_precision')
+        precision_score = cross_val_score(clf, train, target, cv=n, scoring='precision_micro')
         self._update_progress(0.6)
-        recall_score = 0 #cross_val_score(clf, train, target, cv=n, scoring='recall')
+        recall_score = cross_val_score(clf, train, target, cv=n, scoring='recall_micro')
         self._update_progress(1.0)
 
         # print stats with 95% confidence interval
         print ("PRECISION=%0.2f (+/- %0.2f)    ACCURACY=%0.2f (+/- %0.2f)    RECALL=%0.2f (+/- %0.2f)" %
-               (0, 0, #precision_score.mean(), precision_score.std() * 2,
+               (precision_score.mean(), precision_score.std() * 2,
                 accuracy_score.mean(), accuracy_score.std() * 2,
-                0, 0 ))#recall_score.mean(), recall_score.std() * 2))
+                recall_score.mean(), recall_score.std() * 2))
 
     def _update_progress(self, p):
         pr = int(round(p * 100))
