@@ -12,22 +12,17 @@ Created on Sun Jan  8 18:16:55 2017
 @author: Richard
 Read pickle files with the equity price data and save them in a xlsx file
 """
-from  Tkinter import *
+from Tkinter import *
 import ttk
 import matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import sys
-import os 
+import os
 import inspect
 import numpy as np
 # Working with excel sheets
 import pandas as pd
-import DataWarehouse as dwh
-import xlsxwriter
-import pickle
 matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from PIL import ImageTk, Image
 from scanner.Gestures import Gestures
