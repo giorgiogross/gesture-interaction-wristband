@@ -76,29 +76,23 @@ class GestureScanner:
         train = self.train_data
         target = self.train_target
 
-        numLeft = list(target).count(0)
-        numRight = list(target).count(1)
-        numUp = list(target).count(2)
-        numDown = list(target).count(3)
-        numPunch = list(target).count(4)
+        numEntries = []
+        numEntries.append(list(target).count(0))
+        numEntries.append(list(target).count(1))
+        numEntries.append(list(target).count(2))
+        numEntries.append(list(target).count(3))
+        numEntries.append(list(target).count(4))
         print "Raw data contains: "
-        print repr(numRight) + " RIGHT SWIPEs"
-        print repr(numLeft) + " LEFT SWIPEs"
-        print repr(numUp) + " UP SWIPEs"
-        print repr(numDown) + " DOWN SWIPEs"
-        print repr(numPunch) + " PUNCHes"
+        print repr(numEntries[0]) + " RIGHT SWIPEs"
+        print repr(numEntries[1]) + " LEFT SWIPEs"
+        print repr(numEntries[2]) + " UP SWIPEs"
+        print repr(numEntries[3]) + " DOWN SWIPEs"
+        print repr(numEntries[4]) + " PUNCHes"
         print ""
 
         # match rows for left and right swipe
-        diff = abs(numRight - numLeft)
-        if numRight <= numLeft:
-            for i in range(numLeft - diff, numLeft):
-                target = np.delete(target, numLeft - diff - 1, axis=0)
-                train = np.delete(train, numLeft - diff - 1, axis=0)
-        else:
-            for i in range(numLeft + numRight - diff, numLeft + numRight):
-                target = np.delete(target, numLeft + numRight - diff - 1, axis=0)
-                train = np.delete(train, numLeft + numRight - diff - 1, axis=0)
+        minimum = min(numEntries)
+        # todo select same amount of entries per gesture or add recordings to csv file so that each gesture has the same amount of enrties
         print "Dropped redundant entries"
         print ""
 
