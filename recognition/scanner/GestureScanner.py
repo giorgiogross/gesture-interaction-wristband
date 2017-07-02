@@ -78,8 +78,16 @@ class GestureScanner:
 
         numLeft = list(target).count(0)
         numRight = list(target).count(1)
-        print "Raw data contains " + repr(numRight) + " recordings for RIGHT SWIPE and " \
-              + repr(numLeft) + " recordings for LEFT SWIPE"
+        numUp = list(target).count(2)
+        numDown = list(target).count(3)
+        numPunch = list(target).count(4)
+        print "Raw data contains: "
+        print repr(numRight) + " RIGHT SWIPEs"
+        print repr(numLeft) + " LEFT SWIPEs"
+        print repr(numUp) + " UP SWIPEs"
+        print repr(numDown) + " DOWN SWIPEs"
+        print repr(numPunch) + " PUNCHes"
+        print ""
 
         # match rows for left and right swipe
         diff = abs(numRight - numLeft)
@@ -178,8 +186,8 @@ class GestureScanner:
 
         # compute results
         time_approx = int(round(time_approx * 1000000.0 / samples))
-        recall = recall_score(target, resPredictions)
-        precision = average_precision_score(target, resPredictions, average='samples')
+        recall = recall_score(target, resPredictions, average='micro')
+        precision = 0 #average_precision_score(target, resPredictions, average='micro')
         accuracy = accuracy_score(target, resPredictions)
 
         # print stats
@@ -196,16 +204,16 @@ class GestureScanner:
         self._update_progress(0.0)
         accuracy_score = cross_val_score(clf, train, target, cv=n, scoring='accuracy')
         self._update_progress(0.3)
-        precision_score = cross_val_score(clf, train, target, cv=n, scoring='average_precision')
+        precision_score = 0 #cross_val_score(clf, train, target, cv=n, scoring='average_precision')
         self._update_progress(0.6)
-        recall_score = cross_val_score(clf, train, target, cv=n, scoring='recall')
+        recall_score = 0 #cross_val_score(clf, train, target, cv=n, scoring='recall')
         self._update_progress(1.0)
 
         # print stats with 95% confidence interval
         print ("PRECISION=%0.2f (+/- %0.2f)    ACCURACY=%0.2f (+/- %0.2f)    RECALL=%0.2f (+/- %0.2f)" %
-               (precision_score.mean(), precision_score.std() * 2,
+               (0, 0, #precision_score.mean(), precision_score.std() * 2,
                 accuracy_score.mean(), accuracy_score.std() * 2,
-                recall_score.mean(), recall_score.std() * 2))
+                0, 0 ))#recall_score.mean(), recall_score.std() * 2))
 
     def _update_progress(self, p):
         pr = int(round(p * 100))
@@ -235,7 +243,10 @@ class GestureScanner:
                              ],
                              class_names=[
                                  'swipe left',
-                                 'swipe right'
+                                 'swipe right',
+                                 'swipe up',
+                                 'swipe down',
+                                 'punch'
                              ],
                              filled=True, rounded=True,
                              impurity=False)
@@ -249,18 +260,26 @@ class GestureScanner:
         x_values = y_values = z_values = alpha_values = beta_values = gamma_values = np.array([], dtype=float)
         alpha_acc = alpha_acc_neg = beta_acc = beta_acc_neg = gamma_acc = gamma_acc_neg = 0
         for i in range(0, GestureScanner.POINTS_FOR_FEATURE):
+            if i != 0:
+                alpha = data1d[DataProcessor.MEASUREMENT_VALUES * i + 3] - data1d[DataProcessor.MEASUREMENT_VALUES * (i-1) + 3]
+                beta = data1d[DataProcessor.MEASUREMENT_VALUES * i + 4] - data1d[DataProcessor.MEASUREMENT_VALUES * (i-1) + 4]
+                gamma = data1d[DataProcessor.MEASUREMENT_VALUES * i + 5] - data1d[DataProcessor.MEASUREMENT_VALUES * (i-1) + 5]
+            else:
+                alpha = 0
+                beta = 0
+                gamma = 0
             x_values = np.insert(x_values, 0, data1d[DataProcessor.MEASUREMENT_VALUES * i])
             y_values = np.insert(y_values, 0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 1])
             z_values = np.insert(z_values, 0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 2])
-            alpha_values = np.insert(alpha_values, 0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 3])
-            beta_values = np.insert(beta_values, 0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 4])
-            gamma_values = np.insert(gamma_values, 0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 5])
-            alpha_acc += max(0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 3])
-            alpha_acc_neg -= min(0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 3])
-            beta_acc += max(0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 4])
-            beta_acc_neg -= min(0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 4])
-            gamma_acc += max(0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 5])
-            gamma_acc_neg -= min(0, data1d[DataProcessor.MEASUREMENT_VALUES * i + 5])
+            alpha_values = np.insert(alpha_values, 0, alpha)
+            beta_values = np.insert(beta_values, 0, beta)
+            gamma_values = np.insert(gamma_values, 0, gamma)
+            alpha_acc += max(0, alpha)
+            alpha_acc_neg -= min(0, alpha)
+            beta_acc += max(0, beta)
+            beta_acc_neg -= min(0, beta)
+            gamma_acc += max(0, gamma)
+            gamma_acc_neg -= min(0, gamma)
 
         x_min = np.argmin(x_values)
         x_max = np.argmax(x_values)

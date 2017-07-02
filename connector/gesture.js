@@ -11,9 +11,10 @@ GestureTool.init();
 GestureTool.on("ready", function() {
     if(!args[0]) return;
     var path = args[0].endsWith(".py")?args[0]:(args[0]+".py");
+    args.shift();
     log.info("Starting python script " + path);
 
-    proc = spawn('python' , ['-u', path]);
+    proc = spawn('python' , ['-u', path].concat(args));
     proc.stdout.on('data', function (data){
         if (data.toString('utf-8').indexOf("ready") === 0) {
             pyready = true;
