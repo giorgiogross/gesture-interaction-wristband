@@ -4,7 +4,7 @@ from numpy import genfromtxt
 # some classifiers
 from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn import svm
 from sklearn.naive_bayes import GaussianNB
 import sys
@@ -40,7 +40,7 @@ class GestureScanner:
     train_target = []
     entries = 0
 
-    clf = RandomForestClassifier(n_estimators=100)
+    clf = VotingClassifier(estimators=[('5NN', KNeighborsClassifier(n_neighbors=5)), ('rf100', RandomForestClassifier(n_estimators=100))], voting='soft', weights=[1,2])
 
     # set up and train the machine learning instance with the raw data. This is the data which was previously recorded
     # with the recorder module
@@ -52,9 +52,25 @@ class GestureScanner:
 
         lastIdx = DataProcessor.MEASUREMENT_POINTS * DataProcessor.MEASUREMENT_VALUES
 
-        # Sort data by gesture id (at last index...)
-        measurements = measurements[measurements[:, lastIdx].argsort()]
+        # leave out certain recorded data
+        croppedMeasurements = np.ndarray(
+            shape=(
+                self.entries,
+                25
+            ),
+            dtype=float
+        )
+        for i in range(0, self.entries):
+            if measurements[i][lastIdx] != 3.0:
+                croppedMeasurements[i] = measurements[i]
+        measurements = croppedMeasurements[~np.all(croppedMeasurements == 0, axis=1)]
 
+        self.entries = len(measurements)
+
+        # Sort data by gesture id (at last index...)
+        # measurements = measurements[measurements[:, lastIdx].argsort()]
+
+        # Split in training and target data
         self.train_target = measurements[:, lastIdx]
         measurements = np.delete(measurements, -1, 1)
         self.train_data = np.ndarray(
@@ -67,6 +83,7 @@ class GestureScanner:
         for i in range(0, self.entries):
             self.train_data[i] = self._create_features(measurements[i])
 
+        # Set up classifier
         self.clf.fit(self.train_data, self.train_target)
 
         if print_stats:
@@ -111,6 +128,8 @@ class GestureScanner:
         clfSVMName = "SVM"
         clfGausBayes = GaussianNB()
         clfGausBayesName = "Gaussian Bayes"
+        clfVoting = VotingClassifier(estimators=[('5NN', clf5NN), ('rf100', clfRndForest100)], voting='soft', weights=[1,2])
+        clfVotingName = "Voting"
 
         # cross validation
         print "- - - - - - - -              Leave-one-out results:              - - - - - - - -"
@@ -121,6 +140,7 @@ class GestureScanner:
         self._leave_one_out_validation(clf11NNName, clf11NN, train, target)
         # self._leave_one_out_validation(clfSVMName, clfSVM, train, target)
         self._leave_one_out_validation(clfGausBayesName, clfGausBayes, train, target)
+        self._leave_one_out_validation(clfVotingName, clfVoting, train, target)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print "\n\n"
 
@@ -133,6 +153,7 @@ class GestureScanner:
         self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
         # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
         self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
+        self._nfold_cross_validation(clfVotingName, clfVoting, train, target, nfold)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print "\n\n"
 
@@ -145,6 +166,7 @@ class GestureScanner:
         self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
         # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
         self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
+        self._nfold_cross_validation(clfVotingName, clfVoting, train, target, nfold)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
         print "\n\n"
 
