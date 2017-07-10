@@ -7,17 +7,8 @@ from scanner.Gestures import Gestures
 from scanner.GestureScanner import GestureScanner
 from dashboard.plot import Dashboard
 import time
-import argparse
 
-# Instantiate the parser
-argument_parser = argparse.ArgumentParser(description='')
-argument_parser.add_argument('--dashboard', action='store_true',
-                    help='Start the dashboard')
-args = argument_parser.parse_args()
-
-
-if args.dashboard:
-    dashboard = Dashboard()
+dashboard = Dashboard()
 
 def process_input(in_stream):
     global args
@@ -51,19 +42,14 @@ def process_input(in_stream):
         # clear the buffer to avoid future gesture triggers
         dataProcessor.clean()
         
-    if args.dashboard:
-        dashboard.action(gesture_id)
+    dashboard.action(gesture_id)
 
 # init gesture scanning
-gestureScanner = GestureScanner("../input/raw/sensor_data.csv", True)
+gestureScanner = GestureScanner("../input/raw/sensor_data.csv", False)
 
 # handle data input of the sensor
 dataProcessor = Processor.DataProcessor()
 ar = AsyncReader.StdinReader(0, "reader", process_input)
 ar.start()
 
-if args.dashboard:
-    dashboard.init()
-else:
-    while True:
-        time.sleep(0.1)
+dashboard.init()

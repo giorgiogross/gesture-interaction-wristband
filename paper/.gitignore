@@ -1,0 +1,14 @@
+.DS_Store
+./*.pdf
+
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
