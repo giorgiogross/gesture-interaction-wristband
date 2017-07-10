@@ -53,7 +53,77 @@ Nevertheless, our dashboard can be easily extended with further features by impl
 \label{ch:SystemDesign}
 %% ==============
 
-\dots
+In order to maximize reusability of code we decided to split the app into the six main components shown below. As you can see, our project consists of two individual parts, the recorder app and the recognizer app, sharing two helper modules, labeled Input and Connector. We implemented a core module for each part which is responsible to coordinate data streams and event responses. As such, the core modules instantiate their helper modules and use their interfaces to communicate with them. It is also worth knowing that some modules are divided into multiple files which are documented directly in our code.
+
+%% ===========================
+\section{Components}
+\label{ch:SystemDesign:sec:Components}
+%% ===========================
+
+\begin{figure}[htp]
+\begin{center}
+  \includegraphics[width = \textwidth]{Component_diagram_recognizer.jpg}
+\caption{Recognizer App}
+\end{center}
+\end{figure} 
+
+\begin{figure}[htp]
+\begin{center}
+  \includegraphics[width = \textwidth]{Component_diagram_recorder.jpg}
+\caption{Recoreder App}
+\end{center}
+\end{figure} 
+
+\newpage
+
+%% ===========================
+\subsection{Connector}
+\label{ch:SystemDesign:sec:Components:sub:Connector}
+%% ===========================
+
+\begin{wrapfigure}{R}{0.5\textwidth}
+\centering
+\includegraphics[width=0.5\textwidth]{Connector_flow.jpg}
+\caption{Establishing the connection to the Thunderboard React}
+\end{wrapfigure}
+As we ran into several issues trying to connect the Thunderboard React using Python we implemented the connector in JavaScript and used NodeJS libraries for interfacing the bluetooth device. To launch the recorder or recognizer app you need to launch the connector and pass it the path to the desired core module you aim to launch. After launching the connector it performs the steps shown in the following flow chart.
+
+%% ===========================
+\subsection{Input}
+\label{ch:SystemDesign:sec:Components:sub:Input}
+%% ===========================
+
+The input module starts a new thread upon instantiation to avoid blocking the calling thread. In its new thread it keeps reading the sensor data from stdin, parses it into floating point values and inserts them into a ring buffer. Its interfaces can be used to set up the buffer, to reset the buffer, to insert new data into the buffer or to start recording.  In the latter case, the module finds out when the actual gesture started on its own by comparing the acceleration vector length to a threshold value. As soon as the buffer fills up its content are written to a static CSV file autonomously. As you can see, the input module never takes action on its own but is still smart enough to perform a full control flow to record a gesture or to maintain the ring buffer.
+
+%% ===========================
+\subsection{Recorder}
+\label{ch:SystemDesign:sec:Components:sub:Recorder}
+%% ===========================
+
+The recorder module provides a simple user interface which is used to specify the gesture you want to record as well as to explicitly start recording. That is done through a button which has to be pressed before each single gesture; we implemented it this way in order to avoid accidentally record a gesture which would pollute our training set. It also is responsible for instantiation and hooking up the input module.
+
+%% ===========================
+\subsection{Scanner}
+\label{ch:SystemDesign:sec:Components:sub:Scanner}
+%% ===========================
+
+The scanner module is only used by the recognition module. It is used for monitoring the ring buffer content and checks whether a gesture was observed. Thus, it instantiates, trains and maintains the machine learning algorithm used to classify live sensor data. Training includes transforming the recorded raw acceleration and tilt angle data into features and feeding them to the machine learning algorithm. All live sensor data will  also have to be transformed into the same features so that it can be classified. We describe what features are and how we transformed the raw data in the next chapter.
+To avoid unnecessary complexity, we included the cross validation used to evaluate the performance of different machine learning algorithms directly into the scanner module. Cross validation includes leave-one-out, 10fold-cross-validation and 25fold-cross-validation and is performed during instantiation.
+
+%% ===========================
+\subsection{Dashboard}
+\label{ch:SystemDesign:sec:Components:sub:Dashboard}
+%% ===========================
+
+Just like the scanner, the dashboard module is only used by the recognizer app. It provides the user with a user interface showing charts and diagrams based on data by KPMG. That data is read and parsed by the dashboard when it is instantiated. As the user interface provides interactive elements like buttons the dashboard module is also responsible for handling user interaction. In addition, it exposes an interface to the recognition module which is used to broadcast recognized gestures as events to the dashboard. The dashboard can then execute the appropriate action.
+
+%% ===========================
+\subsection{Recognition}
+\label{ch:SystemDesign:sec:Components:sub:Recognition}
+%% ===========================
+
+The recognition module used in the recognizer app is responsible to instantiate and hooking up the input module. It also instantiates the dashboard and implements the logic required to notify it about a recognized gesture.
+
 
 
 %% ===========================
@@ -119,5 +189,8 @@ Comparing  both  approaches  the  latter  one increased our average precision  s
 \label{ch:DataCollection:sec:DataClassification}
 %% ===========================
 
-\dots
+Depending on the underlying training set, each classifier performs a bit different. We tested the KNeighborsClassifier with five and eleven nearest neighbors, RandomForestClassifier with 10 and 100 estimators,  DecisionTreeClassifier, SupportVectorMachine and GaussianNB, which is a neural network. We evaluated each classifier with leave-one-out, 10fold-cross-validation and 25fold-cross-validation and summarized the results in the diagram below:
+%% \todo{Show stats and mention all classifiers - (Show Decision Boundaries & Discuss) - Discuss which classifier we took, based on stats
+
+As you can see, the GaussianNB and 11NearestNeighbors perform poorly compared to the other classifiers.
 
