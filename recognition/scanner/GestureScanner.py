@@ -100,8 +100,8 @@ class GestureScanner:
         numEntries.append(list(target).count(3))
         numEntries.append(list(target).count(4))
         print "Raw data contains: "
-        print repr(numEntries[0]) + " RIGHT SWIPEs"
-        print repr(numEntries[1]) + " LEFT SWIPEs"
+        print repr(numEntries[0]) + " LEFT SWIPEs"
+        print repr(numEntries[1]) + " RIGHT SWIPEs"
         print repr(numEntries[2]) + " UP SWIPEs"
         print repr(numEntries[3]) + " DOWN SWIPEs"
         print repr(numEntries[4]) + " PUNCHes"
