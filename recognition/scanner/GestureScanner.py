@@ -28,7 +28,7 @@ from sklearn.metrics import recall_score
 class GestureScanner:
     # todo specify exact number of features later here
     FEATURES = 18
-    POINTS_FOR_FEATURE = 3
+    POINTS_FOR_FEATURE = 4
 
     train_data = np.ndarray(
         shape=(
@@ -275,6 +275,7 @@ class GestureScanner:
         # 1. min/max per axis
         x_values = y_values = z_values = alpha_values = beta_values = gamma_values = np.array([], dtype=float)
         alpha_acc = alpha_acc_neg = beta_acc = beta_acc_neg = gamma_acc = gamma_acc_neg = 0
+        x_acc = y_acc = z_acc = 0
         for i in range(0, GestureScanner.POINTS_FOR_FEATURE):
             if i != 0:
                 alpha = data1d[DataProcessor.MEASUREMENT_VALUES * i + 3] - data1d[DataProcessor.MEASUREMENT_VALUES * (i-1) + 3]
@@ -348,7 +349,10 @@ class GestureScanner:
             print prob
 
             maxIdx = np.argmax(prob)
-            if prob[maxIdx] * 100 > 80:
+            if prob[maxIdx] * 100 > 72:
+                #Fix for swipe down
+                if(maxIdx == 3):
+                    return 4
                 return maxIdx
 
         return -1

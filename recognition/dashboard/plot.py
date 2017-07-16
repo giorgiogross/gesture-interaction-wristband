@@ -30,6 +30,10 @@ from scanner.Gestures import Gestures
 
 class Dashboard:
     cb1 = 0
+    b1 = 0
+    b2 = 0
+    b3 = 0
+    current_year = 0
 
     def init(self):
         wd = os.path.dirname(os.path.abspath(inspect.stack()[0][1])) 
@@ -144,13 +148,13 @@ class Dashboard:
         var = StringVar()
         var.set('L')
 
-        b1=Radiobutton(m4,text='2010',variable=var,value='2010',command = radio)
-        b1.pack(side=TOP,anchor=W)
-        b1.select()
-        b2=Radiobutton(m4,text='2011',variable=var,value='2011',command = radio)
-        b2.pack(side=TOP,anchor=W)
-        b3=Radiobutton(m4,text='2012',variable=var,value='2012',command = radio)
-        b3.pack(side=TOP,anchor=W)
+        self.b1=Radiobutton(m4,text='2010',variable=var,value='2010',command = radio)
+        self.b1.pack(side=TOP,anchor=W)
+        self.b1.select()
+        self.b2=Radiobutton(m4,text='2011',variable=var,value='2011',command = radio)
+        self.b2.pack(side=TOP,anchor=W)
+        self.b3=Radiobutton(m4,text='2012',variable=var,value='2012',command = radio)
+        self.b3.pack(side=TOP,anchor=W)
         '''
         for text, mode in modes:
             b[]=Radiobutton(m3,text=text,variable=var,value=mode,command = radio)
@@ -216,3 +220,11 @@ class Dashboard:
             current = current + 1 if current < 2 else 2
             self.cb1.current(current)
             self.cb1.event_generate("<<ComboboxSelected>>")
+        elif action_id == Gestures.PUNCH:
+            self.current_year = self.current_year + 1
+            if(self.current_year % 3 == 0):
+                self.b1.invoke()
+            elif(self.current_year % 3 == 1):
+                self.b2.invoke()
+            else:
+                self.b3.invoke()
