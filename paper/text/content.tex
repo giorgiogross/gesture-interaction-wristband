@@ -8,7 +8,7 @@
 
 Gesture recognition with wearable devices has been an important research topic over the years. 
 There have been a lot of works which used accelerometer-based devices, such as a Wii remote or a data glove. 
-Xu, Zhou and Ji experimented with classifying seven hand gestures using the sign sequence of the gesture acceleration as the main feature (\cite{xu}). 
+Xu, Zhou and Li experimented with classifying seven hand gestures using the sign sequence of the gesture acceleration as the main feature (\cite{xu}). 
 They tried three different recognition algorithms in order to find the most suitable one. 
 The movement data was gathered using MEMS 3-axis accelerometer with a Bluetooth connection to a PC. 
 With a dataset of overall 628 samples they achieved an average recognition accuracy of 95.6\% and they concluded, that in this experiment the recognition algorithm based on sign sequence and template matching was the most accurate algorithm. 
@@ -32,12 +32,12 @@ To the best of our knowledge, this work presents the first gesture recognition s
 %% ==============
 
 The main goal of our seminar work was to implement a gesture recognition program with which we can reliably control applications like dashboards on the computer.
-Therefor, we created a test dashboard with which we examined the usability of our program.
+Therefore, we created a test dashboard with which we examined the usability of our program.
 It consists of several diagrams which can be modified by steering elements like a dropdown menu and radio buttons.
 The main characteristic of the dashboard is that it can be controlled only with a few simple buttons.
 This makes the steering with our gesture recognition program easier since we can use the python package “pyautogui” to translate recognized gestures into commands on our user interface.
 
-We decided to use the swipe lift and right gestures to select a value in a dropdown menu and we use a punch gesture to cycle through the available years in data.
+We decided to use the swipe left and right gestures to select a value in a dropdown menu and we use a punch gesture to cycle through the available years in data since these commands felt relatively intuitive. 
 
 Of course, this is just a simplified example of a dashboard with only a few features compared to what can be found in actual corporate dashboards which allow more sophisticated commands.
 Nevertheless, our dashboard can be easily extended with further features by implementing more steering elements like slide bars or check buttons and by adding more recognizable gestures with which these elements can be controlled.  
@@ -117,7 +117,7 @@ To avoid unnecessary complexity, we included the cross validation used to evalua
 \label{ch:SystemDesign:sec:Components:sub:Dashboard}
 %% ===========================
 
-Just like the scanner, the dashboard module is only used by the recognizer app. It provides the user with a user interface showing charts and diagrams based on data by KPMG. That data is read and parsed by the dashboard when it is instantiated. As the user interface provides interactive elements like buttons the dashboard module is also responsible for handling user interaction. In addition, it exposes an interface to the recognition module which is used to broadcast recognized gestures as events to the dashboard. The dashboard can then execute the appropriate action.
+Just like the scanner, the dashboard module is only used by the recognizer app. It provides the user with a user interface showing charts and diagrams based on stock market data. That data is read and parsed by the dashboard when it is instantiated. As the user interface provides interactive elements like buttons the dashboard module is also responsible for handling user interaction. In addition, it exposes an interface to the recognition module which is used to broadcast recognized gestures as events to the dashboard. The dashboard can then execute the appropriate action.
 
 %% ===========================
 \subsection{Recognition}
