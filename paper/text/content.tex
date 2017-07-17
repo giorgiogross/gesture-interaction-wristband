@@ -32,7 +32,7 @@ To the best of our knowledge, this work presents the first gesture recognition s
 %% ==============
 
 The main goal of our seminar work was to implement a gesture recognition program with which we can reliably control applications like dashboards on the computer.
-Therefore, we created a test dashboard with which we examined the usability of our program.
+Therefor, we created a test dashboard with which we examined the usability of our program.
 It consists of several diagrams which can be modified by steering elements like a dropdown menu and radio buttons.
 The main characteristic of the dashboard is that it can be controlled only with a few simple buttons.
 This makes the steering with our gesture recognition program easier since we can use the python package “pyautogui” to translate recognized gestures into commands on our user interface.
@@ -144,8 +144,30 @@ To  define  which  data  will  be  collected  we  had  to  think  about  which  
 Attaching  the  sensors  to  the  back  of  our  hand enables us to observe acceleration data  for x,  y, and z axis  as well  as tilt  angles  alpha, beta and gamma.
 We thought about attaching a magnet to our thumb so that we can use the hall-sensor as well,  but we decided to leave this  for  further research.
 The collected acceleration and tilt angle data can later be used to distinguish gestures from each other.
+For collecting all the data we need, we use our recorder system, which reads data from the ThunderBoard by using our connector module and giving us the possibility to tag the recorded gesture with an ID.
+The ThunderBoard is therefor attached to the back of the right hand.
 To avoid recording and scanning data observed during normal gesticulation we require the acceleration vector length of each gesture to exceed a certain threshold.
 In our code we set this treshold to 1.2 G.
+As soon as the treshold is exceeded, our recorder saves the next four data points and the specified gesture ID as row in a CSV file.
+All in all, our team recorded 120 data sets per gesture, so 480 data sets overall.
+Because the recorded data is really slow to progress we decided to stop at this point, although we initially wanted external people to record some data for us.
+
+%% ===========================
+\section{Gestures}
+\label{ch:DataCollection:sec:Gestures}
+%% ===========================
+
+Really early in development, we thought about what gestures can we detect and what gestures are useful for us.
+We came up with many ideas, but the first two gestures we implemented were the two most intuitive gestures for us: Swipe Left and Swipe Right.
+For easy recognition of the gesture, we decided to put rules on the execution of these gestures.
+A \glqq swipe left\grqq{} gesture consists of a very fast movement of the active hand to the left, followed by a slow movement back to the initial position.
+Both movements should not include a big tilt of the board.
+The \glqq swipe right\grqq{} gesture is just the same, but with switched directions.
+By adding those rules we increased the success of recognition hugely.
+As a consequence, we removed the first data sets we recorded, without those rules, from the CSV.
+After a few weeks we reached a great success rate on the left and right swipes, so we added additional swipes \glqq Up\grqq{} and \glqq Down\grqq{} and a Punch gesture.
+The punch gesture is executed like a normal punch with the fist.
+Since the \glqq Swipe Down\grqq{} and the Punch were often confound, we decided to exclude the \glqq Swipe Down\grqq -Gesture from our work.
 
 %% ===========================
 \section{Feature Design}
@@ -161,7 +183,7 @@ Choosing  and  designing  those  features  affects  the  performance  of  the ge
 %% ===========================
 
 Standardization,     scaling,     normalization     and     binarization     are     common preprocessing techniques.
-Though, as the acceleration vector and tilt angel sizes are key characteristics  to  distinguish  gestures  scaling,  normalization  and  binarization  are  not applicable for our use case. 
+Though, as the acceleration vector and tilt angle sizes are key characteristics  to  distinguish  gestures  scaling,  normalization  and  binarization  are  not applicable for our use case. 
 
 %% ===========================
 \subsection{Features}
@@ -174,7 +196,6 @@ Though, as the acceleration vector and tilt angel sizes are key characteristics 
 \caption{Choosing our features by looking at exemplary data points}\label{fig:datamining}
 \end{center}
 \end{figure} 
-\newpage
 
 We  first  thought  about  using  the  variance  as  a  feature,  but  early  tests  already revealed  that  the  acceleration  data  often  has  the same variance across all of our tested gestures. We needed to find more useful features, that have different values when we execute different gestures.
 
@@ -254,7 +275,7 @@ In order to provide a convenient user experience gestures need to be predicted f
 \label{ch:Results:sec:Functionality}
 %% ===========================
 
-In our tests, we noticed, that we can not fully reach the 96\% of precision that we theoretically achieved in our calculations.
+In our tests, we noticed, that we can not fully reach the 95\% of precision that we theoretically achieved in our calculations.
 
 The key factor why we don't reach this precision is the very low frequency of data given to us by the ThunderBoard.
 We recieve only 5 data samples per seconds, our gestures are only half a second long.
