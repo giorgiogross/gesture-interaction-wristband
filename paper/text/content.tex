@@ -211,8 +211,8 @@ This new approach improved our gesture recognition by about 5\%, as you can see 
 %% ===========================
 
 Depending on the underlying training set, each classifier performs a bit different. We tested the K-Neighbors classifier with five and eleven nearest neighbors, Random Forest classifier with 10 and 100 estimators,  Decision Tree classifier, Support Vector Machine and Gaussian Bayes, which is a neural network. We then created a Voting classifier based on two of the best classifiers to push the limits even further. Each classifier was evaluated with leave one out and 10-fold cross validation techniques, the results are summarized in the diagrams below:
-
-\begin{figure}
+\newline
+\begin{figure}[H]
 \begin{tikzpicture}
 \begin{axis}[
     title = {},
@@ -310,8 +310,8 @@ x   y           error    label
 \end{figure}
 
 As you can see, the Gaussian Bayes performs poorly compared to the other classifiers. Its precision, accuracy and recall values as well as its standard deviation are unfavourable for practial use. In contrast, the Decision Tree classifier reaches almost 90\% precision, accuracy and recall value. The prediction is based on a tree; inputs always iterate through each node until they reach a leave. Each node checks and classifies the input values and has one incoming and two outgoing edges. The outgoing edges connect to either another classifier node or to a leave. The leaves finally state which gesture the input data corresponds to. This means that our classifier will always predict a gesture with either 100\% or 0\% probability, there is nothing in between. Using a tree is a promising solution, but due to the mentioned behaviour poor predictions cannot be filtered. For instance, knowing the real probability of the prediction allows us to check if it exceeds a certain threshold. We set that threshold to 72\% for other classifiers, so predictions below 72\% probability were ignored. However, combining multiple trees by using a so called Random Forest led to much better results and allows us to monitor the prediction probability. As shown in the diagram, our classifier with 100 estimators reaches 95\% precision and 94\% accuracy and recall. 
-
-\begin{figure}
+\newline
+\begin{figure}[H]
 \begin{tikzpicture}
 \begin{axis}[
     title = {},
