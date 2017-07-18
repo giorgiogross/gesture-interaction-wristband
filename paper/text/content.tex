@@ -299,4 +299,21 @@ In the end we are very happy that we now recognize more than 80\% of the gesture
 \label{ch:Results}
 %% ===========================
 
-\todo{Write a conclusion of our seminar}
+In this seminar paper, we present a gesture recognition system for dashboard steering via a Thunderboard React. 
+Core of this implementation are the machine learning algorithms which are used to classify the input data and to recognize the different gestures. 
+We used several algorithms, like Random Forest, k-Nearest Neighbors, Support Vector Machine or a Voting classifier which we trained with overall 480 samples for four different gestures. 
+Our experiments demonstrated that our implementation achieves an expected accuracy of 95\% with a delay of only 56 milliseconds by using a Voting classifier. 
+Furthermore, we used the gesture recognition for controlling a dashboard that we created. 
+In practice, over 80\% of the gestures could be recognized and translated correctly into dashboard commands, which is a decent result. 
+\newline
+We also investigated the usability of the gesture based dashboard steering. 
+In experiments, we let participants use the gesture recognition on the dashboard and evaluate their experience \todo{..write some results of the usability test}
+\newline
+Nevertheless, our work exposes several extension opportunities. 
+First of all, further recognizable gestures can be added in order to increase the usability of our implementation for industrial purposes. 
+This would also allow the user to control a more sophisticated dashboard with more steering elements than the one used in our work.
+Further gestures and a higher accuracy can be realized by utilizing data from the Hall sensor on the Thunderboard react, so that more features can be calculated as training data for the machine learning algorithm. 
+Also, more sample data for the training of the algorithms is valuable, which was unfortunately not possible in this work due to the limited time that was available. 
+Moreover, a combination of our work with tactile feedback devices can also be implemented in order to enhance a user’s dashboard experience even more. 
+
+
