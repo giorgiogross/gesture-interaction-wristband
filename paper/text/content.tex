@@ -82,13 +82,20 @@ In order to maximize reusability of code we decided to split the app into the si
 \subsection{Connector}
 \label{ch:SystemDesign:sec:Components:sub:Connector}
 %% ===========================
-
+\setlength\intextsep{0pt}
 \begin{wrapfigure}{R}{0.5\textwidth}
 \centering
 \includegraphics[width=0.5\textwidth]{Connector_flow.jpg}
 \caption{Establishing the connection to the Thunderboard React}\label{fig:flow_chart}
 \end{wrapfigure}
+
 As we ran into several issues trying to connect the Thunderboard React using Python we implemented the connector in JavaScript and used NodeJS libraries for interfacing the bluetooth device. To launch the recorder or recognizer app you need to launch the connector and pass it the path to the desired core module. After launching the connector it performs the steps shown in the flow chart on the right.
+
+\begin{wrapfigure}{R}{0.4\textwidth}
+\centering
+\includegraphics[width=0.4\textwidth]{recorder_screenshot.png}
+\caption{Recorder Tool}\label{fig:recorder_screenshot}
+\end{wrapfigure}
 
 %% ===========================
 \subsection{Input}
@@ -226,43 +233,195 @@ This new approach improved our gesture recognition by about 5\%, as you can see 
 \end{center}
 \end{figure}
 
+\newpage 
+
 %% ===========================
 \section{Data Classification}
 \label{ch:DataCollection:sec:DataClassification}
 %% ===========================
 
-Depending on the underlying training set, each classifier performs a bit different. We tested the K-Neighbors classifier with five and eleven nearest neighbors, Random Forest classifier with 10 and 100 estimators,  Decision Tree classifier, Support Vector Machine and Gaussian Bayes, which is a neural network. We then created a Voting classifier based on the two best classifiers to push the limits even further. Each classifier was evaluated with leave one out and 25-fold cross validation techniques, the results are summarized in the diagrams below:
-%% \todo{Discuss which classifier we took, based on stats
+Depending on the underlying training set, each classifier performs a bit different. We tested the K-Neighbors classifier with five and eleven nearest neighbors, Random Forest classifier with 10 and 100 estimators,  Decision Tree classifier, Support Vector Machine and Gaussian Bayes, which is a neural network. We then created a Voting classifier based on two of the best classifiers to push the limits even further. Each classifier was evaluated with leave one out and 10-fold cross validation techniques, the results are summarized in the diagrams below:
 
+\begin{figure}
+\begin{tikzpicture}
+\begin{axis}[
+    title = {},
+    width=15cm,
+    height=9cm,
+    xtick=\empty,
+    ytick={0,5,...,100},
+    ylabel=Value in \%,
+    extra x ticks={1,...,8},
+    extra x tick labels={%
+		Random Forest with 10 estimators,
+        Random Forest with 100 estimators,
+        Decision Tree,
+        5-Neighbors,
+        11-Neighbors,
+        SVM,
+        Gaussian Bayes,
+        Voting    
+    },
+    extra x tick style={
+           grid=none,
+           tick label style={rotate=90}
+           },
+    ybar
+    ]
 
-\begin{figure}[!htb]
-\minipage{0.32\textwidth}
-  \includegraphics[width=\linewidth]{25fold_cv_precision.png}
-  \caption{25-fold cross validation precision}\label{fig:precision}
-\endminipage\hfill
-\minipage{0.32\textwidth}
-  \includegraphics[width=\linewidth]{25fold_cv_accuracy.png}
-  \caption{25-fold cross validation accuracy}\label{fig:accuracy}
-\endminipage\hfill
-\minipage{0.32\textwidth}%
-  \includegraphics[width=\linewidth]{25fold_cv_recall.png}
-  \caption{25-fold cross validation recall}\label{fig:recall}
-\endminipage
+\addplot[
+    fill=blue!60,
+    draw=black,
+    point meta=y,
+    every node near coord/.style={inner ysep=5pt},
+    error bars/.cd,
+        y dir=both,
+        y explicit
+] 
+table [y error=error] {
+x   y           error    label
+1   92   12 1
+2   95    10 2
+3   89   22 3
+4   92   13 4 
+5   89    16 5 
+6   96   5 6
+7   64    30 7 
+8   95   9 8
+};
+
+\addplot[
+    fill=red!60,
+    draw=black,
+    point meta=y,
+    every node near coord/.style={inner ysep=5pt},
+    error bars/.cd,
+        y dir=both,
+        y explicit
+] 
+table [y error=error] {
+x   y           error    label
+1   91   16 1
+2   94    10 2
+3   88   24 3
+4   92   13 4 
+5   89    16 5 
+6   96   5 6
+7   64    30 7 
+8   95   8 8
+};
+
+\addplot[
+    fill=green!60,
+    draw=black,
+    point meta=y,
+    every node near coord/.style={inner ysep=5pt},
+    error bars/.cd,
+        y dir=both,
+        y explicit
+] 
+table [y error=error] {
+x   y           error    label
+1   91   12 1
+2   94    12 2
+3   88   24 3
+4   92   13 4 
+5   89    16 5 
+6   96   5 6
+7   64    30 7 
+8   95   8 8
+};
+
+\legend{Precision,Accuracy,Recall}
+\draw ({rel axis cs:0,0}|-{axis cs:0,0}) -- ({rel axis cs:1,0}|-{axis cs:0,0});
+\end{axis}
+\end{tikzpicture}
+\caption{10fold cross validation}\label{fig:10fold}
 \end{figure}
 
-As you can see, the Gaussian Bayes and Support Vector Machine perform poorly compared to the other classifiers. Both their expectancy value and their standard deviation are unfavourable for practial use. In contrast, the Decision Tree classifier reaches almost 90\% precision, accuracy and recall expectancy value. The prediction is based on a tree; inputs always iterate through each node until they reach a leave. Each node checks and classifies the input values and has one incoming and two outgoing edges. The leaves finally state which gesture the input data corresponds to. Using a tree is apparently a promising solution, but as we end up in a leave the prediction has always a probability of 100\% which limits this classifiers abilities to some extent. Combining multiple trees by using a so called Random Forest led to much better results. As shown in the diagram, the expectancy value of our classifier with 100 estimators reaches 94\% precision, accuracy and recall. 
+As you can see, the Gaussian Bayes performs poorly compared to the other classifiers. Its precision, accuracy and recall values as well as its standard deviation are unfavourable for practial use. In contrast, the Decision Tree classifier reaches almost 90\% precision, accuracy and recall value. The prediction is based on a tree; inputs always iterate through each node until they reach a leave. Each node checks and classifies the input values and has one incoming and two outgoing edges. The outgoing edges connect to either another classifier node or to a leave. The leaves finally state which gesture the input data corresponds to. This means that our classifier will always predict a gesture with either 100\% or 0\% probability, there is nothing in between. Using a tree is a promising solution, but due to the mentioned behaviour poor predictions cannot be filtered. For instance, knowing the real probability of the prediction allows us to check if it exceeds a certain threshold. We set that threshold to 72\% for other classifiers, so predictions below 72\% probability were ignored. However, combining multiple trees by using a so called Random Forest led to much better results and allows us to monitor the prediction probability. As shown in the diagram, our classifier with 100 estimators reaches 95\% precision and 94\% accuracy and recall. 
 
-\begin{wrapfigure}{R}{0.4\textwidth}
-\centering
-\includegraphics[width=0.4\textwidth]{loo_cv.png}
-\caption{Leave one out cross validation accuracy}\label{fig:loo}
-\end{wrapfigure}
+\begin{figure}
+\begin{tikzpicture}
+\begin{axis}[
+    title = {},
+    width=15cm,
+	ymin=0,
+    height=9cm,
+    xtick=\empty,
+    ytick={0,5,...,100},
+    extra x ticks={1,...,8},
+    extra x tick labels={%
+		Random Forest with 10 estimators,
+        Random Forest with 100 estimators,
+        Decision Tree,
+        5-Neighbors,
+        11-Neighbors,
+        SVM,
+        Gaussian Bayes,
+        Voting    
+    },
+    extra x tick style={
+           grid=none,
+           tick label style={rotate=90} % <-- this is added
+           },
+    legend style={fill=none},
+    ybar
+    ]
 
-The K-Neighbors classifier follows a differnet approach. Simply put, training data is mapped into a coordinate system. Input data is then mapped the same way and classified by checking the K nearest training data points in that coordinate system relative to the input data. Whatever gesture the majority of these K neighbors is assigned to is the predicted gesture of our input. In our case K was five or eleven. Considering just 5 neighbors showed off to be the better solution and compares very vell to our Desicion Tree classifier with 100 estimators: The K-neighbors classifier performs about 1\% worse, but has a much smaller standard deviation equal to 10\% in precision, accuracy and recall instead of 11\% - 13\%.
+\addplot[
+    fill=blue!60,
+    draw=black,
+    point meta=y,
+    every node near coord/.style={inner ysep=5pt}
+] 
+table [y] {
+x   y      label
+1   93.5   1
+2   96   2
+3   91   3
+4   93.5   4 
+5   93.1   5 
+6   96.9   6
+7   63.5   7 
+8   96.5   8
+};
 
-Having examined those common classifiers we combined the two best of them, Random Forest with 100 estimators and 5-Neighbors, into a Voting classifier. Tests revealed that giving the Random Forest predictions twice the weight of the 5-Neigbors predictions increases the expectancy value of our Voting classifier to 95\% accuracy and recall while slightly decreasing the standard deviation. Due to these observations we decided to use the Voting classifier to control the dashboard.
+\addplot[
+    fill=orange!60,
+    draw=black,
+    point meta=y,
+    every node near coord/.style={inner ysep=5pt}
+] 
+table [y] {
+x   y      label
+1   6.3   1
+2   59.8   2
+3   0.1   3
+4   1.1   4 
+5   1.3   5 
+6   0.2   6
+7   0.3   7 
+8   62.9   8
+};
 
-In order to provide a convenient user experience, gestures need to be predicted fast enough during app usage. We measured the average prediction time for each classifier during our leave one out cross validation. The results are presented in figure \ref{fig:loo} and justify our decision to use the Voting classifier for prediction. Although it has the highest prediction time we think that fiftysix milliseconds are still appropriate for real world applications. In comparison to \cite{liu}, our archieved delay is about five times shorter and therefore, should not impair user experience. What is also worth noting is that the 5-Neighbors classifier needs approximately one millisecond and still performs almost as well as the Random Forest classifier with 100 estimators. So the relatively large prediction time of the Voting classifier is mainly caused by the Random Forest classifier we applied to the classifier set.
+\legend{Accuracy in \%,Prediction Time in ms}
+\draw ({rel axis cs:0,0}|-{axis cs:0,0}) -- ({rel axis cs:1,0}|-{axis cs:0,0});
+\end{axis}
+\end{tikzpicture}
+\caption{Leave one out}\label{fig:loo}
+\end{figure}
+
+The K-Neighbors classifier follows a differnet approach. Simply put, training data is mapped into a coordinate system. Input data is then mapped the same way and classified by checking the K nearest training data points in that coordinate system relative to the input data. Whatever gesture the majority of these K neighbors is assigned to is the predicted gesture of our input. In our case K was five or eleven. Considering just 5 neighbors showed off to be the better solution and compares very vell to our Random Forest classifier with 100 estimators: The K-neighbors classifier performs about 2-3\% worse and has a higher standard deviation equal to 13\% in precision, accuracy and recall instead of 10\% - 12\%.
+
+Having examined those common classifiers we combined the Random Forest classifier with 100 estimators and 5-Neighbors classifier as estimators into a Voting classifier. The Voting classifier passes input data to all its estimators and makes its decision based on their averaged predicted gesture probabilites. Tests revealed that giving the Random Forest predictions twice the weight of the 5-Neighbors predictions while using soft voting increases the accuracy and recall of our Voting classifier to 95\% while slightly decreasing the standard deviation to 9-8\%. The weight determines in the case of soft voting, as we applied it, the weight of the gesture probabilities before averaging.
+
+Yet, the Support Vector Machine (SVM) classifier still beats the Voting classifier: 96\% accuracy, precision and recall with a standard deviation of 5\% each are the main reasons why we would chose the SVM classifier for dashboard interaction. Since well-tuned features and improved data preprocessing are important for an efficient SVM classifier we were only able to reach these results in the final phase of our work. For that reason the SVM classifier may be examined in further research and is currently not used in our dashboard application.
+
+In order to provide a convenient user experience, gestures need to be predicted fast enough during app usage. We measured the average prediction time for each classifier during our leave one out tests. As our data set consists of 480 samples we iterated 480 times over it and left out a different data set on each iteration. The left out data set was used for testing, the remaining 479 data sets were used for training. The results are presented in figure \ref{fig:loo}.
+
+Although the Voting classifiers prediction time of sixtytwo milliseconds is the highest one it competes very vell against \cite{liu}; our achieved delay is about five times shorter and therefore proves itself appropriate for real world applications. We implemented the Voting classifier in the dashboard and got statisfying test results. One might notice that the 5-Neighbors classifier needs approximately one millisecond and still performs almost as well as the Random Forest classifier with 100 estimators. So the relatively large prediction time of the Voting classifier is mainly caused by the Random Forest classifier we applied to the classifier set. Overall, the longer prediction time pays off as an increase of 3\% in accuracy, precision and recall values. 
+In contrast, the SVM classifier stands out with a prediction time of 0.2ms. As it also performs slightly better than the Voting classifier it is the option to choose for production use.
 
 
 %% ===========================

@@ -109,8 +109,6 @@ class GestureScanner:
 
         # match rows for left and right swipe
         minimum = min(numEntries)
-        # todo select same amount of entries per gesture or add recordings to csv file so that each gesture has the same amount of enrties
-        print "Dropped redundant entries"
         print ""
 
         # set up our classifiers
@@ -138,7 +136,7 @@ class GestureScanner:
         self._leave_one_out_validation(clfDecisionTreeName, clfDecisionTree, train, target)
         self._leave_one_out_validation(clf5NNName, clf5NN, train, target)
         self._leave_one_out_validation(clf11NNName, clf11NN, train, target)
-        # self._leave_one_out_validation(clfSVMName, clfSVM, train, target)
+        self._leave_one_out_validation(clfSVMName, clfSVM, train, target)
         self._leave_one_out_validation(clfGausBayesName, clfGausBayes, train, target)
         self._leave_one_out_validation(clfVotingName, clfVoting, train, target)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
@@ -151,7 +149,7 @@ class GestureScanner:
         self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
         self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
         self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
-        # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
         self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
         self._nfold_cross_validation(clfVotingName, clfVoting, train, target, nfold)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
@@ -164,7 +162,7 @@ class GestureScanner:
         self._nfold_cross_validation(clfDecisionTreeName, clfDecisionTree, train, target, nfold)
         self._nfold_cross_validation(clf5NNName, clf5NN, train, target, nfold)
         self._nfold_cross_validation(clf11NNName, clf11NN, train, target, nfold)
-        # self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
+        self._nfold_cross_validation(clfSVMName, clfSVM, train, target, nfold)
         self._nfold_cross_validation(clfGausBayesName, clfGausBayes, train, target, nfold)
         self._nfold_cross_validation(clfVotingName, clfVoting, train, target, nfold)
         print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
