@@ -121,8 +121,8 @@ To  define  which  data  will  be  collected  we  had  to  think  about  which  
 Attaching  the  sensors  to  the  back  of  our  hand enables us to observe acceleration data  for x,  y, and z axis  as well  as tilt  angles  alpha, beta and gamma.
 We thought about attaching a magnet to our thumb so that we can use the hall-sensor as well,  but we decided to leave this  for  further research.
 The collected acceleration and tilt angle data can later be used to distinguish gestures from each other.
-For collecting all the data we need, we use our recorder system, which reads data from the ThunderBoard by using our connector module and giving us the possibility to tag the recorded gesture with an ID.
-The ThunderBoard is therefor attached to the back of the right hand.
+For collecting all the data we need, we use our recorder system, which reads data from the Thunderboard by using our connector module and giving us the possibility to tag the recorded gesture with an ID.
+The Thunderboard is therefor attached to the back of the right hand.
 To avoid recording and scanning data observed during normal gesticulation we require the acceleration vector length of each gesture to exceed a certain threshold.
 In our code we set this treshold to 1.2 G.
 As soon as the treshold is exceeded, our recorder saves the next four data points and the specified gesture ID as row in a CSV file.
@@ -431,20 +431,20 @@ Nevertheless, our dashboard can be easily extended with further features by impl
 
 In our tests, we noticed, that we can not fully reach the 95\% of precision that we theoretically achieved in our calculations.
 
-The key factor why we don't reach this precision is the very low frequency of data given to us by the ThunderBoard.
-We recieve only 5 data samples per seconds, our gestures are only half a second long.
-This leads to the problem, that one data point can mix , for example, the fast movement to the left and the slow movement back to the right, so we only get one datapoint from two different movements.
+The key factor why we did not reach this precision is the very low frequency of data given to us by the Thunderboard.
+We recieved only 5 data samples per seconds, our gestures are only half a second long.
+This lead to the problem, that one data point could mix , for example, the fast movement to the left and the slow movement back to the right, so that we only got one datapoint from two different movements.
 
-We tried to make this better by recording more data, in different speeds and with slightly different movement, but the more data we use, the algorithms heavily get slower.
+We tried to improve this by recording more data, in different speeds and with slightly different movement, but the more data we used, the slowlier the algorithms got.
 
-In the end we are very happy that we recognized 43 of 50 gestures, so a total of 86\%, in our final test and translate them into working dashboard commands.
+In the end we are very happy that we recognized 43 of 50 gestures, so a total of 86\%, in our final test and translated them into working dashboard commands.
 
 %% ===========================
 \section{Usability}
 \label{ch:Results:sec:Usability}
 %% ===========================
 
-In our usability test, we asked five people that had no contact to our development before, what they think.
+In our usability test, we asked five people that had no contact to our development before, what they think about it.
 We gave them our Thunderboard glove and let them test the dashboard after a very quick introduction, what gestures we support and what they do.
 The following section sums up the answers of our testers:
 
@@ -453,16 +453,16 @@ Three other testers had no difficulties in using the dashboard, only a few gestu
 The last tester had bigger problems in getting their gestures to do the right thing - We think the board was not calibrated correctly.
 
 We next asked the testers if they think we chose good gestures for our work.
-They all said the gestures were well chosen, except the punch gesture needs to much power to activate.
+They all said the gestures were well chosen, except the punch gesture needs too much power in order to be recognized.
 
-We then asked, if the method of controlling the dashboard with gestures is easy to learn.
-Our testers think there is a short period of learning in the beginning until you know how to perform the gestures and you get enough power to activate our algorithm.
+Afterwards we asked, if the method of controlling the dashboard with gestures is easy to learn.
+Our testers stated taht there is a short period of learning in the beginning until you know how to perform the gestures and you get enough power to activate our algorithm.
 After that, it's natural and easy to control the dashboard.
 
-Overall, most testers said the gesture recognition is not very suitable for controlling a dashboard, but maybe for a presentation of a dashboard in a conference.
-Here you have the advantage, that you dont need to do several clicks for each action, instead you control the dashboard while presenting just with your arm movement.
-Another negative point that they said multiple times, is that the gestures should be way more subtle, because you have to do fast and long movements for our tool to detect the right gesture.
-We think, with a higher sampling rate of the ThunderBoard, we could achieve much better results with subtle gestures.
+Overall, most testers said that the gesture recognition is not very suitable for controlling a dashboard, but rather for a presentation of a dashboard in a conference.
+Here you have the advantage, that you do not need to do several clicks for each action, instead you control the dashboard while presenting just with your arm movement.
+Another negative point that was mentioned multiple times is that the gestures should be way more subtle, since you have to do fast and long movements so that the tool can detect the right gesture.
+We think, with a higher sampling rate of the Thunderboard, we could achieve much better results with subtle gestures.
 
 %% ===========================
 \chapter{Results}
@@ -474,13 +474,13 @@ Core of this implementation are the machine learning algorithms which are used t
 We used several algorithms, like Random Forest, k-Nearest Neighbors, Support Vector Machine or a Voting classifier which we trained with overall 480 samples for four different gestures. 
 Our experiments demonstrated that our implementation achieves an expected accuracy of 95\% with a delay of only 56 milliseconds by using a Voting classifier. 
 Furthermore, we used the gesture recognition for controlling a dashboard that we created. 
-In practice, over 80\% of the gestures could be recognized and translated correctly into dashboard commands, which is a decent result. 
+In practice, over 86\% of the gestures could be recognized and translated correctly into dashboard commands, which is a decent result. 
 
 We also investigated the usability of the gesture based dashboard steering. 
 In experiments, we let participants use the gesture recognition on the dashboard and evaluate their experience as shown in chapter \ref{ch:Results:sec:Usability}.
 Most testers liked our approach, but said the gestures are too rough and must be executed too fast.
 Our proposal for a solution is improving the sampling rate of our given hardware to detect more subtle movement in the short time of a gesture.
-The second most important statement of our testers was that the tool is not very intuitive for controlling a dashboard but maybe nice to hold a presentation with.
+The second most important statement of our testers was that the tool is not very intuitive for controlling a dashboard but maybe applicable to hold a presentation with.
 
 Nevertheless, our work exposes several extension opportunities. 
 First of all, further recognizable gestures can be added in order to increase the usability of our implementation for industrial purposes. 
