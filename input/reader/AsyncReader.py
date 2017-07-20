@@ -1,6 +1,5 @@
 import threading
 import sys
-import time
 import fileinput
 import os
 

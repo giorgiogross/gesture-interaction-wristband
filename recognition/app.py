@@ -6,9 +6,9 @@ from input.reader import AsyncReader
 from scanner.Gestures import Gestures
 from scanner.GestureScanner import GestureScanner
 from dashboard.plot import Dashboard
-import time
 
 dashboard = Dashboard()
+
 
 def process_input(in_stream):
     global args
@@ -19,8 +19,6 @@ def process_input(in_stream):
 
     gesture_id = gestureScanner.check_for_gesture(dataProcessor.get_flat_buffer())
 
-    # todo pass gesture to dashboard
-    # todo track when last gesture was done and only pass this one on if there is enough time in between (~1sec)
     if gesture_id == Gestures.SWIPE_LEFT:
         print "SWIPE LEFT recognized"
         # clear the buffer to avoid future gesture triggers

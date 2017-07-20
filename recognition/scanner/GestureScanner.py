@@ -20,13 +20,13 @@ from sklearn.externals.six import StringIO
 import pydot
 # Classifier testing
 from sklearn.model_selection import cross_val_score
-from sklearn import metrics
 from sklearn.metrics import precision_score
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import recall_score
 
+
+# Trains the classifier, classifies new input data and prints stats if desired
 class GestureScanner:
-    # todo specify exact number of features later here
     FEATURES = 18
     POINTS_FOR_FEATURE = 4
 
@@ -67,9 +67,6 @@ class GestureScanner:
 
         self.entries = len(measurements)
 
-        # Sort data by gesture id (at last index...)
-        # measurements = measurements[measurements[:, lastIdx].argsort()]
-
         # Split in training and target data
         self.train_target = measurements[:, lastIdx]
         measurements = np.delete(measurements, -1, 1)
@@ -93,12 +90,8 @@ class GestureScanner:
         train = self.train_data
         target = self.train_target
 
-        numEntries = []
-        numEntries.append(list(target).count(0))
-        numEntries.append(list(target).count(1))
-        numEntries.append(list(target).count(2))
-        numEntries.append(list(target).count(3))
-        numEntries.append(list(target).count(4))
+        numEntries = [list(target).count(0), list(target).count(1), list(target).count(2), list(target).count(3),
+                      list(target).count(4)]
         print "Raw data contains: "
         print repr(numEntries[0]) + " LEFT SWIPEs"
         print repr(numEntries[1]) + " RIGHT SWIPEs"
@@ -174,8 +167,6 @@ class GestureScanner:
         samples = target.size
         time_approx = 0
         resPredictions = []
-
-        #resTN, resFP, resFN, resTP = 0
 
         print ">" + clfName + ":"
 
