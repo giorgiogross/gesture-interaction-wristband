@@ -181,19 +181,19 @@ We then created graphs for each of our data sets and looked what is characterist
 In Figure \ref{fig:datamining} for example, we could see that the Swipe Left (Swipe Right) gesture first has a minimum (maximum) on the X-Axis, then a maximum (minimum).
 So we decided to use maximum  and  minimum  acceleration  per  axis, because they  differ  widely  across gestures  and  are  worth  adding  to  our  feature  set.
 
-To give our classifier an idea of which minimum/maximum was the first, we put them in the right order, so if we have a maximum first, this will be the first feature and the minimum will become the second feature.
+To give our classifier an idea of which minimum/maximum was the first we put them in the right order. So, if we have a maximum first this will be the first feature and the minimum will become the second feature.
 For  instance,  swiping  left  first  shows  a negative  minimum  acceleration, e.g. -1.7G, and then a positive  maximum acceleration, e.g. 1.2G, on the x axis.
 We now pick those values out of our buffer and figure out which one was earlier, so we can put them in our feature vector in the right order.
 In  this example, we end up with the tuple (-1.7, 1.2).
 
 To include the tilt angles into our feature set, we had to come up with a different approach.
-Like for acceleration, not only the variance of the given data was not a good idea either for angles, but also their minimum and maximum values are often equally great across different gestures.
+In contrast to the acceleration, not only the variance of the given data was a bad idea for either angles, but also their minimum and maximum values are often equally great across different gestures.
 Anyway, taking the minimum and maximum into our feature set increased our precision a little bit, so we continued to use them.
 
-Summing  up  all  angles  led  to non-satisfying  results, because they mostly sum up to a value near zero,  so  we  then thought about  more  features  per  angle:
+Summing  up  all  angles  led  to non-satisfying  results because they mostly sum up to a value near zero,  so  we  kept thinking about  more  features  per  angle:
 One  sums  up  the absolute  values  of  negative  angles  and  the  other  one  sums  up  the  absolute values  of  the  positive  angles.
 
-Because the Thunderboard does a permanent recalibration, the absolute angles were not really useful. So, in the next step we decided to use only the differences between two angles in our buffer.
+Because the Thunderboard does a permanent recalibration the absolute angles were not really useful. So, in the next step we decided to use only the differences between two angles in our buffer.
 This new approach improved our gesture recognition by about 5\%, as you can see in picture \ref{fig:angle_feature}.
 
 \begin{figure}[htp]
@@ -210,7 +210,7 @@ This new approach improved our gesture recognition by about 5\%, as you can see 
 \label{ch:DataCollection:sec:DataClassification}
 %% ===========================
 
-Depending on the underlying training set, each classifier performs a bit different. We tested the K-Neighbors classifier with five and eleven nearest neighbors, Random Forest classifier with 10 and 100 estimators,  Decision Tree classifier, Support Vector Machine and Gaussian Bayes, which is a neural network. We then created a Voting classifier based on two of the best classifiers to push the limits even further. Each classifier was evaluated with leave one out and 10-fold cross validation techniques, the results are summarized in the diagrams below:
+Depending on the underlying training set, each classifier performs a bit different. We tested the K-Neighbors classifier with five and eleven nearest neighbors, Random Forest classifier with 10 and 100 estimators,  Decision Tree classifier, Support Vector Machine and Gaussian Bayes, which is a neural network. We then created a Voting classifier based on two of the best classifiers to push the limits even further. Each classifier was evaluated with leave one out and 10-fold cross validation techniques, the results are summarized in figure \ref{fig:10fold} below:
 \newline
 \begin{figure}[H]
 \begin{tikzpicture}
@@ -306,10 +306,10 @@ x   y           error    label
 \draw ({rel axis cs:0,0}|-{axis cs:0,0}) -- ({rel axis cs:1,0}|-{axis cs:0,0});
 \end{axis}
 \end{tikzpicture}
-\caption{10fold cross validation}\label{fig:10fold}
+\caption{10-fold cross validation}\label{fig:10fold}
 \end{figure}
 
-As you can see, the Gaussian Bayes performs poorly compared to the other classifiers. Its precision, accuracy and recall values as well as its standard deviation are unfavourable for practial use. In contrast, the Decision Tree classifier reaches almost 90\% precision, accuracy and recall value. The prediction is based on a tree; inputs always iterate through each node until they reach a leave. Each node checks and classifies the input values and has one incoming and two outgoing edges. The outgoing edges connect to either another classifier node or to a leave. The leaves finally state which gesture the input data corresponds to. This means that our classifier will always predict a gesture with either 100\% or 0\% probability, there is nothing in between. Using a tree is a promising solution, but due to the mentioned behaviour poor predictions cannot be filtered. For instance, knowing the real probability of the prediction allows us to check if it exceeds a certain threshold. We set that threshold to 72\% for other classifiers, so predictions below 72\% probability were ignored. However, combining multiple trees by using a so called Random Forest led to much better results and allows us to monitor the prediction probability. As shown in the diagram, our classifier with 100 estimators reaches 95\% precision and 94\% accuracy and recall. 
+As you can see, the Gaussian Bayes performs poorly compared to the other classifiers. Its precision, accuracy and recall values as well as its standard deviation are unfavourable for practial use. In contrast, the Decision Tree classifier reaches almost 90\% precision, accuracy and recall value. The prediction is based on a tree; inputs always iterate through each node until they reach a leave. Each node checks and classifies the input values and has one incoming and two outgoing edges. The outgoing edges connect to either another classifier node or to a leave. The leaves finally state which gesture the input data corresponds to. This means that our classifier will always predict a gesture with either 100\% or 0\% probability, there is nothing in between. Using a tree is a promising solution, but due to the mentioned behaviour poor predictions cannot be filtered. For instance, knowing the real probability of the prediction allows us to check if it exceeds a certain threshold. We set that threshold to 72\% for other classifiers, so predictions below 72\% probability were ignored. However, combining multiple trees by using a so called Random Forest led to much better results and allows us to monitor the prediction probability. As shown in figure \ref{fig:10fold}, our classifier with 100 estimators reaches 95\% precision and 94\% accuracy and recall. 
 \newline
 \begin{figure}[H]
 \begin{tikzpicture}
@@ -382,7 +382,7 @@ x   y      label
 \caption{Leave one out}\label{fig:loo}
 \end{figure}
 
-The K-Neighbors classifier follows a differnet approach. Simply put, training data is mapped into a coordinate system. Input data is then mapped the same way and classified by checking the K nearest training data points in that coordinate system relative to the input data. Whatever gesture the majority of these K neighbors is assigned to is the predicted gesture of our input. In our case K was five or eleven. Considering just 5 neighbors showed off to be the better solution and compares very vell to our Random Forest classifier with 100 estimators: The K-neighbors classifier performs about 2-3\% worse and has a higher standard deviation equal to 13\% in precision, accuracy and recall instead of 10\% - 12\%.
+The K-Neighbors classifier follows a different approach. Simply put, training data is mapped into a coordinate system. Input data is then mapped the same way and classified by checking the K nearest training data points in that coordinate system relative to the input data. Whatever gesture the majority of these K neighbors is assigned to is the predicted gesture of our input. In our case K was five or eleven. Considering just 5 neighbors showed off to be the better solution and compares very vell to our Random Forest classifier with 100 estimators: The K-Neighbors classifier performs about 2-3\% worse and has a higher standard deviation equal to 13\% in precision, accuracy and recall instead of 10\% - 12\%.
 
 Having examined those common classifiers we combined the Random Forest classifier with 100 estimators and 5-Neighbors classifier as estimators into a Voting classifier. The Voting classifier passes input data to all its estimators and makes its decision based on their averaged predicted gesture probabilites. Tests revealed that giving the Random Forest predictions twice the weight of the 5-Neighbors predictions while using soft voting increases the accuracy and recall of our Voting classifier to 95\% while slightly decreasing the standard deviation to 9-8\%. The weight determines in the case of soft voting, as we applied it, the weight of the gesture probabilities before averaging.
 
@@ -390,7 +390,7 @@ Yet, the Support Vector Machine (SVM) classifier still beats the Voting classifi
 
 In order to provide a convenient user experience, gestures need to be predicted fast enough during app usage. We measured the average prediction time for each classifier during our leave one out tests. As our data set consists of 480 samples we iterated 480 times over it and left out a different data set on each iteration. The left out data set was used for testing, the remaining 479 data sets were used for training. The results are presented in figure \ref{fig:loo}.
 
-Although the Voting classifiers prediction time of sixtytwo milliseconds is the highest one it competes very vell against \cite{liu}; our achieved delay is about five times shorter and therefore proves itself appropriate for real world applications. We implemented the Voting classifier in the dashboard and got statisfying test results. One might notice that the 5-Neighbors classifier needs approximately one millisecond and still performs almost as well as the Random Forest classifier with 100 estimators. So the relatively large prediction time of the Voting classifier is mainly caused by the Random Forest classifier we applied to the classifier set. Overall, the longer prediction time pays off as an increase of 3\% in accuracy, precision and recall values. 
+Although the Voting classifiers prediction time of 62 milliseconds is the highest one it competes very vell against the results of \cite{liu}; our achieved delay is about five times shorter and therefore proves itself appropriate for real world applications. We implemented the Voting classifier in the dashboard and got statisfying test results. One might notice that the 5-Neighbors classifier needs approximately one millisecond and still performs almost as well as the Random Forest classifier with 100 estimators. So the relatively large prediction time of the Voting classifier is mainly caused by the Random Forest classifier we applied to the classifier set. Overall, the longer prediction time pays off as an increase of 3\% in accuracy, precision and recall values. 
 In contrast, the SVM classifier stands out with a prediction time of 0.2ms. As it also performs slightly better than the Voting classifier it is the option to choose for production use.
 
 
@@ -471,13 +471,13 @@ We think, with a higher sampling rate of the Thunderboard, we could achieve much
 
 In this seminar paper, we present a gesture recognition system for dashboard steering via a Thunderboard React. 
 Core of this implementation are the machine learning algorithms which are used to classify the input data and to recognize the different gestures. 
-We used several algorithms, like Random Forest, k-Nearest Neighbors, Support Vector Machine or a Voting classifier which we trained with overall 480 samples for four different gestures. 
-Our experiments demonstrated that our implementation achieves an expected accuracy of 95\% with a delay of only 56 milliseconds by using a Voting classifier. 
+We used several algorithms, like Random Forest, K-Neighbors, Support Vector Machine or a Voting classifier which we trained with overall 480 samples for four different gestures. 
+Our experiments demonstrated that our implementation achieves an expected accuracy of 95\% with a delay of only 62 milliseconds by using a Voting classifier. 
 Furthermore, we used the gesture recognition for controlling a dashboard that we created. 
 In practice, over 86\% of the gestures could be recognized and translated correctly into dashboard commands, which is a decent result. 
 
 We also investigated the usability of the gesture based dashboard steering. 
-In experiments, we let participants use the gesture recognition on the dashboard and evaluate their experience as shown in chapter \ref{ch:Results:sec:Usability}.
+In experiments, we let participants use the gesture recognition for cotrolling the dashboard and evaluated their experience as shown in chapter \ref{ch:Results:sec:Usability}.
 Most testers liked our approach, but said the gestures are too rough and must be executed too fast.
 Our proposal for a solution is improving the sampling rate of our given hardware to detect more subtle movement in the short time of a gesture.
 The second most important statement of our testers was that the tool is not very intuitive for controlling a dashboard but maybe applicable to hold a presentation with.
